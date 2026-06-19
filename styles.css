@@ -594,33 +594,33 @@ p {
 .charts-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 18px;
+  gap: 16px;
+  margin-bottom: 20px;
   align-items: stretch;
 }
 
 .chart-card {
   display: flex;
   flex-direction: column;
-  min-height: 420px;
+  min-height: 448px;
 }
 
 .chart-card--wide {
   grid-column: 1 / -1;
-  min-height: 400px;
+  min-height: 408px;
 }
 
 .chart-card canvas {
   width: 100% !important;
   display: block;
   flex: 1 1 auto;
-  min-height: 330px !important;
-  height: 330px !important;
+  min-height: 356px !important;
+  height: 356px !important;
 }
 
 .chart-card--wide canvas {
-  min-height: 290px !important;
-  height: 290px !important;
+  min-height: 308px !important;
+  height: 308px !important;
 }
 
 .table-wrap {
@@ -726,13 +726,13 @@ tbody tr:nth-child(even) {
 
   .chart-card,
   .chart-card--wide {
-    min-height: 360px;
+    min-height: 380px;
   }
 
   .chart-card canvas,
   .chart-card--wide canvas {
-    min-height: 280px !important;
-    height: 280px !important;
+    min-height: 300px !important;
+    height: 300px !important;
   }
 }
 

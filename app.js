@@ -15,6 +15,23 @@ const THEME = {
   soft: "#F7F7F7"
 };
 
+const CHART_LIMITS = {
+  angle: {
+    min: 0,
+    max: 30,
+    yStep: 5,
+    xStep: 10
+  },
+  direction: {
+    xMin: -45,
+    xMax: 45,
+    xStep: 10,
+    yMin: -2.5,
+    yMax: 2.5,
+    yStep: 0.5
+  }
+};
+
 let angleChart;
 let directionChart;
 let deviationChart;
@@ -60,6 +77,9 @@ const els = {
   metricAngle: document.getElementById("metricAngle"),
   metricAzimuth: document.getElementById("metricAzimuth"),
   metricDepth: document.getElementById("metricDepth"),
+  metricAngleMeta: document.getElementById("metricAngleMeta"),
+  metricAzimuthMeta: document.getElementById("metricAzimuthMeta"),
+  metricDepthMeta: document.getElementById("metricDepthMeta"),
   analysisText: document.getElementById("analysisText"),
   planMap: document.getElementById("planMap"),
   dataTableBody: document.getElementById("dataTableBody"),
@@ -418,6 +438,10 @@ function computeSymmetricExtent(values, limit, floorValue) {
   return Math.max(floorValue, limit, peak) * 1.2;
 }
 
+function roundUpToStep(value, step) {
+  return Math.ceil(value / step) * step;
+}
+
 function setMetricCardTone(card, pct) {
   card.classList.remove("metric-card--alert", "metric-card--ok");
   if (!Number.isFinite(pct)) return;
@@ -476,6 +500,7 @@ function renderSummary(rows) {
   const metrics = calculateMetrics(rows);
   const blast = state.blastName || "Fogo";
   state.renderedAt = new Date();
+  const metaLabel = `Meta = ${formatNumber(state.limits.meta, 0)}%`;
 
   els.headerBlastName.textContent = blast;
   els.reportFireTag.textContent = `Fogo ${blast}`;
@@ -489,6 +514,9 @@ function renderSummary(rows) {
   els.metricAngle.textContent = formatPercent(metrics.anglePct);
   els.metricAzimuth.textContent = formatPercent(metrics.azPct);
   els.metricDepth.textContent = formatPercent(metrics.depthPct);
+  els.metricAngleMeta.textContent = metaLabel;
+  els.metricAzimuthMeta.textContent = metaLabel;
+  els.metricDepthMeta.textContent = metaLabel;
 
   setMetricCardTone(els.metricAngleCard, metrics.anglePct);
   setMetricCardTone(els.metricAzimuthCard, metrics.azPct);
@@ -620,24 +648,32 @@ function buildChartScales() {
     x: {
       ticks: {
         color: THEME.textMuted,
-        maxRotation: 0
+        maxRotation: 0,
+        padding: 10
       },
       grid: {
-        color: THEME.grid
+        color: THEME.grid,
+        lineWidth: 1.15,
+        drawTicks: true
       },
       border: {
-        color: THEME.borderStrong
+        color: THEME.borderStrong,
+        width: 1.15
       }
     },
     y: {
       ticks: {
-        color: THEME.textMuted
+        color: THEME.textMuted,
+        padding: 8
       },
       grid: {
-        color: THEME.grid
+        color: THEME.grid,
+        lineWidth: 1.15,
+        drawTicks: true
       },
       border: {
-        color: THEME.borderStrong
+        color: THEME.borderStrong,
+        width: 1.15
       }
     }
   };
@@ -668,13 +704,13 @@ function renderCharts(rows) {
       : null
   ));
 
-  const directionXLimit = computeSymmetricExtent(rows.map(row => row.azimuthDelta), state.limits.azimuth, 10);
-  const directionYLimit = computeSymmetricExtent(rows.map(row => row.depthDelta), state.limits.depth, 0.4);
   const normalizedLimit = Math.max(
     120,
     ...normalizedAzimuth.filter(Number.isFinite),
     ...normalizedDepth.filter(Number.isFinite)
   ) * 1.1;
+  const angleMaxId = Math.max(...angleData.map(point => Number(point.x) || 0), 0);
+  const angleXAxisMax = Math.max(CHART_LIMITS.angle.xStep, roundUpToStep(angleMaxId + 2, 5));
 
   if (angleChart) angleChart.destroy();
   if (directionChart) directionChart.destroy();
@@ -711,20 +747,32 @@ function renderCharts(rows) {
         },
         toleranceLines: {
           yLines: [state.limits.angleMin, state.limits.angleMax],
-          color: THEME.textMuted
+          color: THEME.planned,
+          lineWidth: 1.85,
+          dash: []
         }
       },
       scales: {
         ...buildChartScales(),
         x: {
           ...buildChartScales().x,
-          title: { display: true, text: "ID do furo", color: THEME.textBody, font: { weight: "600" } }
+          title: { display: true, text: "ID Furo", color: THEME.textBody, font: { weight: "600" } },
+          min: 0,
+          max: angleXAxisMax,
+          ticks: {
+            ...buildChartScales().x.ticks,
+            stepSize: CHART_LIMITS.angle.xStep
+          }
         },
         y: {
           ...buildChartScales().y,
           title: { display: true, text: "Ângulo [°]", color: THEME.textBody, font: { weight: "600" } },
-          min: 0,
-          suggestedMax: Math.max(25, state.limits.angleMax + 4)
+          min: CHART_LIMITS.angle.min,
+          max: CHART_LIMITS.angle.max,
+          ticks: {
+            ...buildChartScales().y.ticks,
+            stepSize: CHART_LIMITS.angle.yStep
+          }
         }
       }
     }
@@ -762,7 +810,9 @@ function renderCharts(rows) {
         toleranceLines: {
           xLines: [-state.limits.azimuth, state.limits.azimuth],
           yLines: [-state.limits.depth, state.limits.depth],
-          color: THEME.textMuted
+          color: THEME.planned,
+          lineWidth: 1.85,
+          dash: []
         }
       },
       scales: {
@@ -770,15 +820,23 @@ function renderCharts(rows) {
         x: {
           ...buildChartScales().x,
           title: { display: true, text: "Δ Azimute [°]", color: THEME.textBody, font: { weight: "600" } },
-          min: -directionXLimit,
-          max: directionXLimit
+          min: CHART_LIMITS.direction.xMin,
+          max: CHART_LIMITS.direction.xMax,
+          ticks: {
+            ...buildChartScales().x.ticks,
+            stepSize: CHART_LIMITS.direction.xStep
+          }
         },
         y: {
           ...buildChartScales().y,
           title: { display: true, text: "Δ Profundidade [m]", color: THEME.textBody, font: { weight: "600" } },
           reverse: true,
-          min: -directionYLimit,
-          max: directionYLimit
+          min: CHART_LIMITS.direction.yMin,
+          max: CHART_LIMITS.direction.yMax,
+          ticks: {
+            ...buildChartScales().y.ticks,
+            stepSize: CHART_LIMITS.direction.yStep
+          }
         }
       }
     }
@@ -798,7 +856,7 @@ function renderCharts(rows) {
           pointRadius: 2.5,
           pointHoverRadius: 4,
           tension: 0.16,
-          spanGaps: true
+          spanGaps: false
         },
         {
           label: "Profundidade | % do limite",
@@ -809,7 +867,7 @@ function renderCharts(rows) {
           pointRadius: 2.5,
           pointHoverRadius: 4,
           tension: 0.16,
-          spanGaps: true
+          spanGaps: false
         }
       ]
     },
