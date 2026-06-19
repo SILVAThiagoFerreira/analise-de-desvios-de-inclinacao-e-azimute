@@ -9,8 +9,8 @@
   --border-strong: #d1d5db;
   --accent: #e30613;
   --accent-dark: #9d0b0e;
-  --radius-lg: 8px;
-  --radius-md: 6px;
+  --radius-lg: 0px;
+  --radius-md: 0px;
   --font: Inter, Arial, Helvetica, system-ui, sans-serif;
 }
 
@@ -156,7 +156,7 @@ p {
   justify-content: center;
   min-height: 36px;
   padding: 0 14px;
-  border-radius: 4px;
+  border-radius: 0;
   border: 1px solid var(--border-strong);
   background: var(--surface);
   color: var(--text-body);
@@ -245,7 +245,7 @@ p {
   min-height: 38px;
   padding: 9px 11px;
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: 0;
   background: #ffffff;
   color: var(--text-body);
 }
@@ -265,7 +265,7 @@ p {
   min-height: 28px;
   padding: 0 12px;
   border: 1px solid var(--border-strong);
-  border-radius: 4px;
+  border-radius: 0;
   background: var(--surface-soft);
   color: var(--text-body);
   cursor: pointer;
