@@ -812,7 +812,7 @@ function renderCharts(rows) {
 }
 
 function renderTable(rows) {
-  els.dataTableBody.innerHTML = rows.slice(0, 40).map(row => `
+  els.dataTableBody.innerHTML = rows.map(row => `
     <tr>
       <td>${row.id}</td>
       <td>${formatNumber(row.frontalAngle, 2)}°</td>
