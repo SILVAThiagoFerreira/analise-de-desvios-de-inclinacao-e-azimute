@@ -1029,6 +1029,156 @@ async function loadDefaultDxf() {
   }
 }
 
+async function renderElementToCanvas(element, scale) {
+  return window.html2canvas(element, {
+    scale,
+    useCORS: true,
+    backgroundColor: "#ffffff",
+    logging: false
+  });
+}
+
+function createPdfLayout(pdf, margin = 10, sectionGap = 4) {
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  return {
+    margin,
+    sectionGap,
+    pageWidth,
+    pageHeight,
+    printableWidth: pageWidth - margin * 2,
+    printableHeight: pageHeight - margin * 2,
+    currentY: margin,
+    pageIndex: 0
+  };
+}
+
+function mmPerPixelForCanvas(layout, canvas) {
+  return layout.printableWidth / canvas.width;
+}
+
+function ensurePdfSpace(pdf, layout, requiredHeight, options = {}) {
+  const forceNewPage = options.forceNewPage === true;
+  const remainingHeight = layout.pageHeight - layout.margin - layout.currentY;
+  if (
+    forceNewPage ||
+    (layout.currentY > layout.margin && requiredHeight > remainingHeight)
+  ) {
+    pdf.addPage();
+    layout.pageIndex += 1;
+    layout.currentY = layout.margin;
+  }
+}
+
+function addCanvasPageSlice(pdf, layout, canvas, offsetY, sliceHeight, mmPerPixel) {
+  const pageCanvas = document.createElement("canvas");
+  pageCanvas.width = canvas.width;
+  pageCanvas.height = sliceHeight;
+
+  const pageContext = pageCanvas.getContext("2d");
+  if (!pageContext) {
+    throw new Error("Não foi possível preparar o PDF para download.");
+  }
+
+  pageContext.fillStyle = "#ffffff";
+  pageContext.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+  pageContext.drawImage(
+    canvas,
+    0,
+    offsetY,
+    canvas.width,
+    sliceHeight,
+    0,
+    0,
+    pageCanvas.width,
+    pageCanvas.height
+  );
+
+  const renderedHeightMm = sliceHeight * mmPerPixel;
+  const imageData = pageCanvas.toDataURL("image/jpeg", 0.98);
+  pdf.addImage(
+    imageData,
+    "JPEG",
+    layout.margin,
+    layout.currentY,
+    layout.printableWidth,
+    renderedHeightMm,
+    undefined,
+    "FAST"
+  );
+  layout.currentY += renderedHeightMm;
+}
+
+function appendCanvasAsSection(pdf, layout, canvas, options = {}) {
+  const mmPerPixel = mmPerPixelForCanvas(layout, canvas);
+  const renderedHeight = canvas.height * mmPerPixel;
+
+  if (renderedHeight <= layout.printableHeight && !options.allowSplit) {
+    ensurePdfSpace(pdf, layout, renderedHeight, options);
+    addCanvasPageSlice(pdf, layout, canvas, 0, canvas.height, mmPerPixel);
+    layout.currentY += layout.sectionGap;
+    return;
+  }
+
+  if (!options.allowSplit && renderedHeight > layout.printableHeight) {
+    ensurePdfSpace(pdf, layout, layout.printableHeight, options);
+  } else {
+    ensurePdfSpace(pdf, layout, options.minBlockHeightMm || 28, options);
+  }
+
+  let renderedOffset = 0;
+  while (renderedOffset < canvas.height) {
+    const remainingHeightMm = layout.pageHeight - layout.margin - layout.currentY;
+    const availablePixelHeight = Math.max(
+      1,
+      Math.floor(remainingHeightMm / mmPerPixel)
+    );
+    const sliceHeight = Math.min(availablePixelHeight, canvas.height - renderedOffset);
+    addCanvasPageSlice(pdf, layout, canvas, renderedOffset, sliceHeight, mmPerPixel);
+    renderedOffset += sliceHeight;
+
+    if (renderedOffset < canvas.height) {
+      pdf.addPage();
+      layout.pageIndex += 1;
+      layout.currentY = layout.margin;
+    } else {
+      layout.currentY += layout.sectionGap;
+    }
+  }
+}
+
+async function exportReportBySections(report, scale) {
+  const { jsPDF } = window.jspdf || {};
+  const pdf = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4",
+    compress: true
+  });
+  const layout = createPdfLayout(pdf, 10, 4);
+
+  const sections = [
+    report.querySelector(".report-header"),
+    report.querySelector(".summary-grid"),
+    report.querySelector(".control-card"),
+    report.querySelector(".analysis-card"),
+    report.querySelector(".map-card"),
+    ...Array.from(report.querySelectorAll(".charts-grid .chart-card")),
+    report.querySelector(".data-table-card")
+  ].filter(Boolean);
+
+  for (const section of sections) {
+    const canvas = await renderElementToCanvas(section, scale);
+    const isTable = section.classList.contains("data-table-card");
+    appendCanvasAsSection(pdf, layout, canvas, {
+      allowSplit: isTable,
+      minBlockHeightMm: isTable ? 42 : 28
+    });
+  }
+
+  return pdf;
+}
+
 async function exportPdf() {
   const blast = (state.blastName || "fogo").replace(/[^\w\-]+/g, "_").toLowerCase();
   const report = document.getElementById("report");
@@ -1052,78 +1202,8 @@ async function exportPdf() {
       requestAnimationFrame(() => requestAnimationFrame(resolve));
     });
 
-    const canvas = await window.html2canvas(report, {
-      scale: Math.max(window.devicePixelRatio || 1, 2.5),
-      useCORS: true,
-      backgroundColor: "#ffffff",
-      logging: false
-    });
-
-    const pdf = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4",
-      compress: true
-    });
-
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    const margin = 10;
-    const printableWidth = pageWidth - margin * 2;
-    const printableHeight = pageHeight - margin * 2;
-    const mmPerPixel = printableWidth / canvas.width;
-    const pagePixelHeight = Math.floor(printableHeight / mmPerPixel);
-
-    let renderedHeight = 0;
-    let pageIndex = 0;
-
-    while (renderedHeight < canvas.height) {
-      const sliceHeight = Math.min(pagePixelHeight, canvas.height - renderedHeight);
-      const pageCanvas = document.createElement("canvas");
-      pageCanvas.width = canvas.width;
-      pageCanvas.height = sliceHeight;
-
-      const pageContext = pageCanvas.getContext("2d");
-      if (!pageContext) {
-        throw new Error("Não foi possível preparar o PDF para download.");
-      }
-
-      pageContext.fillStyle = "#ffffff";
-      pageContext.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-      pageContext.drawImage(
-        canvas,
-        0,
-        renderedHeight,
-        canvas.width,
-        sliceHeight,
-        0,
-        0,
-        pageCanvas.width,
-        pageCanvas.height
-      );
-
-      const imageData = pageCanvas.toDataURL("image/jpeg", 0.98);
-      const renderedPageHeight = sliceHeight * mmPerPixel;
-
-      if (pageIndex > 0) {
-        pdf.addPage();
-      }
-
-      pdf.addImage(
-        imageData,
-        "JPEG",
-        margin,
-        margin,
-        printableWidth,
-        renderedPageHeight,
-        undefined,
-        "FAST"
-      );
-
-      renderedHeight += sliceHeight;
-      pageIndex += 1;
-    }
-
+    const scale = Math.max(window.devicePixelRatio || 1, 2.2);
+    const pdf = await exportReportBySections(report, scale);
     pdf.save(filename);
   } finally {
     els.exportPdfBtn.disabled = false;
