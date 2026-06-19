@@ -924,16 +924,7 @@ async function exportPdf() {
       requestAnimationFrame(() => requestAnimationFrame(resolve));
     });
 
-    const worker = html2pdf().set(opt).from(report).toPdf();
-    const blob = await worker.outputPdf("blob");
-    const downloadUrl = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = downloadUrl;
-    anchor.download = opt.filename;
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    URL.revokeObjectURL(downloadUrl);
+    await html2pdf().set(opt).from(report).save();
   } finally {
     els.exportPdfBtn.disabled = false;
     els.exportPdfBtn.textContent = "Exportar PDF";
