@@ -1172,7 +1172,8 @@ async function exportReportBySections(report, scale) {
     const isTable = section.classList.contains("data-table-card");
     appendCanvasAsSection(pdf, layout, canvas, {
       allowSplit: isTable,
-      minBlockHeightMm: isTable ? 42 : 28
+      minBlockHeightMm: isTable ? 42 : 28,
+      forceNewPage: isTable
     });
   }
 
