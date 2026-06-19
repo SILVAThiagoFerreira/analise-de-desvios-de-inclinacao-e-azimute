@@ -1,12 +1,28 @@
 const DEFAULT_DXF_PATH = "data/PP23.dxf";
 
+const THEME = {
+  accent: "#E30613",
+  accentDark: "#9D0B0E",
+  textStrong: "#111111",
+  textBody: "#333333",
+  textMuted: "#6B7280",
+  border: "#E5E7EB",
+  borderStrong: "#D1D5DB",
+  grid: "#ECEFF3",
+  planned: "#2F3640",
+  surface: "#FFFFFF",
+  soft: "#F7F7F7"
+};
+
 let angleChart;
 let directionChart;
+let deviationChart;
 let currentRows = [];
 let currentFileName = "PP23.dxf";
 
 const state = {
   blastName: "PP23",
+  renderedAt: new Date(),
   limits: {
     angleMin: 12,
     angleMax: 18,
@@ -17,6 +33,7 @@ const state = {
 };
 
 const els = {
+  headerBlastName: document.getElementById("headerBlastName"),
   blastNameInput: document.getElementById("blastNameInput"),
   dxfInput: document.getElementById("dxfInput"),
   logoInput: document.getElementById("logoInput"),
@@ -24,7 +41,14 @@ const els = {
   exportPdfBtn: document.getElementById("exportPdfBtn"),
   reportTitle: document.getElementById("reportTitle"),
   reportSubtitle: document.getElementById("reportSubtitle"),
+  reportSource: document.getElementById("reportSource"),
+  reportDate: document.getElementById("reportDate"),
+  reportFireTag: document.getElementById("reportFireTag"),
   reportLogo: document.getElementById("reportLogo"),
+  metricHolesCard: document.getElementById("metricHolesCard"),
+  metricAngleCard: document.getElementById("metricAngleCard"),
+  metricAzimuthCard: document.getElementById("metricAzimuthCard"),
+  metricDepthCard: document.getElementById("metricDepthCard"),
   metricHoles: document.getElementById("metricHoles"),
   metricComparable: document.getElementById("metricComparable"),
   metricAngle: document.getElementById("metricAngle"),
@@ -35,6 +59,7 @@ const els = {
   dataTableBody: document.getElementById("dataTableBody"),
   angleChartTitle: document.getElementById("angleChartTitle"),
   directionChartTitle: document.getElementById("directionChartTitle"),
+  deviationChartTitle: document.getElementById("deviationChartTitle"),
   angleMinInput: document.getElementById("angleMinInput"),
   angleMaxInput: document.getElementById("angleMaxInput"),
   azLimitInput: document.getElementById("azLimitInput"),
@@ -59,12 +84,15 @@ function formatPercent(value) {
   return `${formatNumber(value, 2)}%`;
 }
 
-function normalizeDeg(deg) {
-  return ((deg + 180) % 360 + 360) % 360 - 180;
+function formatDateTime(value) {
+  return value.toLocaleString("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short"
+  });
 }
 
-function angleDiff(a, b) {
-  return Math.abs(normalizeDeg(a - b));
+function normalizeDeg(deg) {
+  return ((deg + 180) % 360 + 360) % 360 - 180;
 }
 
 function distance3d(a, b) {
@@ -104,14 +132,6 @@ function getField(raw, code, fallback = "") {
 
 function getNum(raw, code, fallback = NaN) {
   return toNumber(getField(raw, code, ""), fallback);
-}
-
-function pointFromRaw(raw, prefix) {
-  return {
-    x: getNum(raw, `${prefix}10`),
-    y: getNum(raw, `${prefix}20`),
-    z: getNum(raw, `${prefix}30`, 0)
-  };
 }
 
 function lineStartEnd(entity) {
@@ -340,15 +360,16 @@ function calculateMetrics(rows) {
 
 const tolerancePlugin = {
   id: "toleranceLines",
-  afterDatasetsDraw(chart, args, pluginOptions) {
+  afterDatasetsDraw(chart) {
     const { ctx, chartArea, scales } = chart;
     const opts = chart.options.plugins.toleranceLines || {};
     if (!chartArea || !opts) return;
 
     ctx.save();
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = "#0f6a2b";
-    ctx.lineCap = "round";
+    ctx.lineWidth = opts.lineWidth || 1.25;
+    ctx.strokeStyle = opts.color || THEME.textMuted;
+    ctx.lineCap = "butt";
+    ctx.setLineDash(opts.dash || [5, 4]);
 
     if (Array.isArray(opts.yLines) && scales.y) {
       for (const y of opts.yLines) {
@@ -379,115 +400,98 @@ const tolerancePlugin = {
 };
 
 Chart.register(tolerancePlugin);
+Chart.defaults.font.family = "Inter, Arial, Helvetica, system-ui, sans-serif";
+Chart.defaults.color = THEME.textMuted;
+Chart.defaults.plugins.legend.labels.boxWidth = 12;
+Chart.defaults.plugins.legend.labels.boxHeight = 12;
 
-function renderCharts(rows) {
-  const angleCtx = document.getElementById("angleChart");
-  const directionCtx = document.getElementById("directionChart");
+function computeSymmetricExtent(values, limit, floorValue) {
+  const valid = values.filter(Number.isFinite).map(value => Math.abs(value));
+  const peak = valid.length ? Math.max(...valid) : 0;
+  return Math.max(floorValue, limit, peak) * 1.2;
+}
+
+function setMetricCardTone(card, pct) {
+  card.classList.remove("metric-card--alert", "metric-card--ok");
+  if (!Number.isFinite(pct)) return;
+  card.classList.add(pct >= state.limits.meta ? "metric-card--ok" : "metric-card--alert");
+}
+
+function complianceAssessment(pct, meta) {
+  if (!Number.isFinite(pct)) return "não pôde ser consolidada";
+  if (pct >= meta) return "permanece em linha com a meta de referência";
+  return "apresenta desempenho abaixo da meta de referência";
+}
+
+function depthSentence(avgDelta) {
+  if (!Number.isFinite(avgDelta)) {
+    return "A tendência média de profundidade não pôde ser consolidada com base no conjunto disponível.";
+  }
+  if (avgDelta > 0.03) {
+    return "A profundidade média executada permanece acima da profundidade de projeto no conjunto analisado.";
+  }
+  if (avgDelta < -0.03) {
+    return "A profundidade média executada permanece abaixo da profundidade de projeto no conjunto analisado.";
+  }
+  return "A profundidade média executada permanece próxima da profundidade de projeto no conjunto analisado.";
+}
+
+function buildAnalysisParagraphs(metrics) {
+  const paragraphs = [];
+  paragraphs.push(
+    `A aderência de ângulo registra <strong>${formatPercent(metrics.anglePct)}</strong> e ${complianceAssessment(metrics.anglePct, state.limits.meta)}, com ${metrics.angleOk} de ${metrics.total} furos enquadrados no intervalo configurado de ${formatNumber(state.limits.angleMin, 2)}° a ${formatNumber(state.limits.angleMax, 2)}°.`
+  );
+
+  if (metrics.azComparable > 0) {
+    paragraphs.push(
+      `A aderência de azimute registra <strong>${formatPercent(metrics.azPct)}</strong> e ${complianceAssessment(metrics.azPct, state.limits.meta)}, considerando ${metrics.azComparable} furo(s) com base comparável em planta dentro do limite de ${formatNumber(state.limits.azimuth, 2)}°.`
+    );
+  } else {
+    paragraphs.push("Não houve base geométrica suficiente para consolidar a aderência de azimute no conjunto analisado.");
+  }
+
+  paragraphs.push(
+    `A aderência Z registra <strong>${formatPercent(metrics.depthPct)}</strong> e ${complianceAssessment(metrics.depthPct, state.limits.meta)}, com verificação frente ao limite de profundidade de ${formatNumber(state.limits.depth, 2)} m.`
+  );
+
+  paragraphs.push(depthSentence(metrics.avgDepthDelta));
+
+  if (metrics.azComparable < metrics.total) {
+    paragraphs.push(
+      `${metrics.total - metrics.azComparable} furo(s) não apresentaram deslocamento teórico em planta suficiente para comparação direcional.`
+    );
+  }
+
+  return paragraphs;
+}
+
+function renderSummary(rows) {
+  const metrics = calculateMetrics(rows);
   const blast = state.blastName || "Fogo";
+  state.renderedAt = new Date();
 
-  const angleData = rows
-    .filter(row => Number.isFinite(row.frontalAngle))
-    .map(row => ({ x: row.id, y: row.frontalAngle }));
+  els.headerBlastName.textContent = blast;
+  els.reportFireTag.textContent = `Fogo ${blast}`;
+  els.reportTitle.textContent = `Análise do fogo ${blast}`;
+  els.reportSubtitle.textContent = currentFileName;
+  els.reportSource.textContent = "Leitura direta do DXF com comparação entre planejado, executado e limites de aderência configurados para esta análise.";
+  els.reportDate.textContent = formatDateTime(state.renderedAt);
 
-  const directionData = rows
-    .filter(row => Number.isFinite(row.azimuthDelta) && Number.isFinite(row.depthDelta))
-    .map(row => ({ x: row.azimuthDelta, y: row.depthDelta, id: row.id }));
+  els.metricHoles.textContent = metrics.total.toLocaleString("pt-BR");
+  els.metricComparable.textContent = `${metrics.azComparable.toLocaleString("pt-BR")} com direção comparável em planta`;
+  els.metricAngle.textContent = formatPercent(metrics.anglePct);
+  els.metricAzimuth.textContent = formatPercent(metrics.azPct);
+  els.metricDepth.textContent = formatPercent(metrics.depthPct);
 
-  if (angleChart) angleChart.destroy();
-  if (directionChart) directionChart.destroy();
+  setMetricCardTone(els.metricAngleCard, metrics.anglePct);
+  setMetricCardTone(els.metricAzimuthCard, metrics.azPct);
+  setMetricCardTone(els.metricDepthCard, metrics.depthPct);
 
-  angleChart = new Chart(angleCtx, {
-    type: "scatter",
-    data: {
-      datasets: [{
-        label: "Furo executado",
-        data: angleData,
-        pointRadius: 5,
-        pointHoverRadius: 7,
-        borderWidth: 1.5,
-        borderColor: "#85620f",
-        backgroundColor: "#c79517"
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: ctx => `ID ${ctx.raw.x}: ${formatNumber(ctx.raw.y, 2)}°`
-          }
-        },
-        toleranceLines: {
-          yLines: [state.limits.angleMin, state.limits.angleMax]
-        }
-      },
-      scales: {
-        x: {
-          title: { display: true, text: "ID Furo", font: { weight: "700" } },
-          grid: { color: "#d5d9d6" }
-        },
-        y: {
-          title: { display: true, text: "Ângulo [°]", font: { weight: "700" } },
-          min: 0,
-          suggestedMax: Math.max(30, state.limits.angleMax + 4),
-          grid: { color: "#d5d9d6" }
-        }
-      }
-    }
-  });
+  const paragraphs = buildAnalysisParagraphs(metrics)
+    .map(paragraph => `<p>${paragraph}</p>`)
+    .join("");
 
-  directionChart = new Chart(directionCtx, {
-    type: "scatter",
-    data: {
-      datasets: [{
-        label: "Furo executado",
-        data: directionData,
-        pointRadius: 5,
-        pointHoverRadius: 7,
-        borderWidth: 1.5,
-        borderColor: "#85620f",
-        backgroundColor: "#c79517"
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: ctx => `ID ${ctx.raw.id}: ΔAz ${formatNumber(ctx.raw.x, 2)}° | ΔZ ${formatNumber(ctx.raw.y, 2)} m`
-          }
-        },
-        toleranceLines: {
-          xLines: [-state.limits.azimuth, state.limits.azimuth],
-          yLines: [-state.limits.depth, state.limits.depth]
-        }
-      },
-      scales: {
-        x: {
-          title: { display: true, text: "Azimute [°]", font: { weight: "700" } },
-          min: -45,
-          max: 45,
-          grid: { color: "#d5d9d6" }
-        },
-        y: {
-          title: { display: true, text: "Δ Profundidade [m]", font: { weight: "700" } },
-          reverse: true,
-          min: -2.5,
-          max: 2.5,
-          grid: { color: "#d5d9d6" }
-        }
-      }
-    }
-  });
-
-  els.angleChartTitle.textContent = `Ângulo Frontal [${blast}]`;
-  els.directionChartTitle.textContent = `Direção dos Furos [${blast}]`;
+  els.analysisText.innerHTML = paragraphs;
 }
 
 function renderPlanMap(rows) {
@@ -501,13 +505,13 @@ function renderPlanMap(rows) {
     allPoints.push(row.plannedStart, row.plannedEnd, ...row.realPoints);
   });
 
-  const xs = allPoints.map(p => p.x).filter(Number.isFinite);
-  const ys = allPoints.map(p => p.y).filter(Number.isFinite);
+  const xs = allPoints.map(point => point.x).filter(Number.isFinite);
+  const ys = allPoints.map(point => point.y).filter(Number.isFinite);
   const minX = Math.min(...xs);
   const maxX = Math.max(...xs);
   const minY = Math.min(...ys);
   const maxY = Math.max(...ys);
-  const pad = 28;
+  const pad = 30;
   const width = 1200;
   const height = 430;
   const scale = Math.min(
@@ -519,85 +523,314 @@ function renderPlanMap(rows) {
   const ty = y => height - pad - (y - minY) * scale - (height - pad * 2 - (maxY - minY) * scale) / 2;
 
   const plannedLines = rows.map(row =>
-    `<line x1="${tx(row.plannedStart.x)}" y1="${ty(row.plannedStart.y)}" x2="${tx(row.plannedEnd.x)}" y2="${ty(row.plannedEnd.y)}" class="planned-line"/>`
+    `<line x1="${tx(row.plannedStart.x)}" y1="${ty(row.plannedStart.y)}" x2="${tx(row.plannedEnd.x)}" y2="${ty(row.plannedEnd.y)}" class="planned-line" />`
   ).join("");
 
   const realLines = rows.map(row => {
-    const pts = row.realPoints.map(p => `${tx(p.x)},${ty(p.y)}`).join(" ");
-    return `<polyline points="${pts}" class="real-line"/>`;
+    const points = row.realPoints.map(point => `${tx(point.x)},${ty(point.y)}`).join(" ");
+    return `<polyline points="${points}" class="real-line" />`;
   }).join("");
 
   const collars = rows.map(row =>
-    `<circle cx="${tx(row.plannedStart.x)}" cy="${ty(row.plannedStart.y)}" r="2.8" class="collar-dot"/>`
+    `<circle cx="${tx(row.plannedStart.x)}" cy="${ty(row.plannedStart.y)}" r="2.7" class="collar-dot" />`
   ).join("");
 
   els.planMap.innerHTML = `
     <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Mapa de planejado e executado">
-      <defs>
-        <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#10201a" flood-opacity=".18"/>
-        </filter>
-      </defs>
-      <rect x="0" y="0" width="${width}" height="${height}" fill="transparent"/>
-      <g filter="url(#softShadow)">${plannedLines}</g>
+      <rect x="0" y="0" width="${width}" height="${height}" fill="transparent" />
+      <g>${plannedLines}</g>
       <g>${realLines}</g>
       <g>${collars}</g>
       <g class="map-legend" transform="translate(24, 24)">
-        <rect width="292" height="42" rx="14" fill="rgba(255,255,255,.86)" stroke="#dbe1dd"/>
-        <line x1="18" y1="15" x2="50" y2="15" class="planned-line"/>
-        <text x="58" y="19">Planejado</text>
-        <line x1="146" y1="15" x2="178" y2="15" class="real-line"/>
-        <text x="186" y="19">Executado</text>
-        <circle cx="18" cy="30" r="3" class="collar-dot"/>
-        <text x="28" y="34">Emboque</text>
+        <rect width="300" height="46" fill="rgba(255,255,255,0.96)" stroke="${THEME.border}" />
+        <line x1="16" y1="16" x2="52" y2="16" class="planned-line" />
+        <text x="60" y="20">Planejado</text>
+        <line x1="132" y1="16" x2="168" y2="16" class="real-line" />
+        <text x="176" y="20">Executado</text>
+        <circle cx="16" cy="32" r="3" class="collar-dot" />
+        <text x="28" y="36">Emboque</text>
       </g>
     </svg>
   `;
+}
+
+function buildChartScales() {
+  return {
+    x: {
+      ticks: {
+        color: THEME.textMuted,
+        maxRotation: 0
+      },
+      grid: {
+        color: THEME.grid
+      },
+      border: {
+        color: THEME.borderStrong
+      }
+    },
+    y: {
+      ticks: {
+        color: THEME.textMuted
+      },
+      grid: {
+        color: THEME.grid
+      },
+      border: {
+        color: THEME.borderStrong
+      }
+    }
+  };
+}
+
+function renderCharts(rows) {
+  const angleCtx = document.getElementById("angleChart");
+  const directionCtx = document.getElementById("directionChart");
+  const deviationCtx = document.getElementById("deviationChart");
+
+  const angleData = rows
+    .filter(row => Number.isFinite(row.frontalAngle))
+    .map(row => ({ x: row.id, y: row.frontalAngle }));
+
+  const directionData = rows
+    .filter(row => Number.isFinite(row.azimuthDelta) && Number.isFinite(row.depthDelta))
+    .map(row => ({ x: row.azimuthDelta, y: row.depthDelta, id: row.id }));
+
+  const normalizedAzimuth = rows.map(row => (
+    Number.isFinite(row.azimuthDelta)
+      ? Math.abs(row.azimuthDelta) / Math.max(state.limits.azimuth, 0.0001) * 100
+      : null
+  ));
+
+  const normalizedDepth = rows.map(row => (
+    Number.isFinite(row.depthDelta)
+      ? Math.abs(row.depthDelta) / Math.max(state.limits.depth, 0.0001) * 100
+      : null
+  ));
+
+  const directionXLimit = computeSymmetricExtent(rows.map(row => row.azimuthDelta), state.limits.azimuth, 10);
+  const directionYLimit = computeSymmetricExtent(rows.map(row => row.depthDelta), state.limits.depth, 0.4);
+  const normalizedLimit = Math.max(
+    120,
+    ...normalizedAzimuth.filter(Number.isFinite),
+    ...normalizedDepth.filter(Number.isFinite)
+  ) * 1.1;
+
+  if (angleChart) angleChart.destroy();
+  if (directionChart) directionChart.destroy();
+  if (deviationChart) deviationChart.destroy();
+
+  angleChart = new Chart(angleCtx, {
+    type: "scatter",
+    data: {
+      datasets: [{
+        label: "Executado",
+        data: angleData,
+        pointRadius: 4,
+        pointHoverRadius: 5,
+        borderWidth: 1,
+        borderColor: THEME.accentDark,
+        backgroundColor: THEME.accent
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: THEME.surface,
+          titleColor: THEME.textStrong,
+          bodyColor: THEME.textBody,
+          borderColor: THEME.borderStrong,
+          borderWidth: 1,
+          callbacks: {
+            label: ctx => `ID ${ctx.raw.x}: ${formatNumber(ctx.raw.y, 2)}°`
+          }
+        },
+        toleranceLines: {
+          yLines: [state.limits.angleMin, state.limits.angleMax],
+          color: THEME.textMuted
+        }
+      },
+      scales: {
+        ...buildChartScales(),
+        x: {
+          ...buildChartScales().x,
+          title: { display: true, text: "ID do furo", color: THEME.textBody, font: { weight: "600" } }
+        },
+        y: {
+          ...buildChartScales().y,
+          title: { display: true, text: "Ângulo [°]", color: THEME.textBody, font: { weight: "600" } },
+          min: 0,
+          suggestedMax: Math.max(25, state.limits.angleMax + 4)
+        }
+      }
+    }
+  });
+
+  directionChart = new Chart(directionCtx, {
+    type: "scatter",
+    data: {
+      datasets: [{
+        label: "Executado",
+        data: directionData,
+        pointRadius: 4,
+        pointHoverRadius: 5,
+        borderWidth: 1,
+        borderColor: THEME.accentDark,
+        backgroundColor: THEME.accent
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: THEME.surface,
+          titleColor: THEME.textStrong,
+          bodyColor: THEME.textBody,
+          borderColor: THEME.borderStrong,
+          borderWidth: 1,
+          callbacks: {
+            label: ctx => `ID ${ctx.raw.id}: ΔAz ${formatNumber(ctx.raw.x, 2)}° | ΔProf ${formatNumber(ctx.raw.y, 2)} m`
+          }
+        },
+        toleranceLines: {
+          xLines: [-state.limits.azimuth, state.limits.azimuth],
+          yLines: [-state.limits.depth, state.limits.depth],
+          color: THEME.textMuted
+        }
+      },
+      scales: {
+        ...buildChartScales(),
+        x: {
+          ...buildChartScales().x,
+          title: { display: true, text: "Δ Azimute [°]", color: THEME.textBody, font: { weight: "600" } },
+          min: -directionXLimit,
+          max: directionXLimit
+        },
+        y: {
+          ...buildChartScales().y,
+          title: { display: true, text: "Δ Profundidade [m]", color: THEME.textBody, font: { weight: "600" } },
+          reverse: true,
+          min: -directionYLimit,
+          max: directionYLimit
+        }
+      }
+    }
+  });
+
+  deviationChart = new Chart(deviationCtx, {
+    type: "line",
+    data: {
+      labels: rows.map(row => String(row.id)),
+      datasets: [
+        {
+          label: "Azimute | % do limite",
+          data: normalizedAzimuth,
+          borderColor: THEME.accent,
+          backgroundColor: "rgba(227, 6, 19, 0.12)",
+          borderWidth: 1.8,
+          pointRadius: 2.5,
+          pointHoverRadius: 4,
+          tension: 0.16,
+          spanGaps: true
+        },
+        {
+          label: "Profundidade | % do limite",
+          data: normalizedDepth,
+          borderColor: THEME.planned,
+          backgroundColor: "rgba(47, 54, 64, 0.10)",
+          borderWidth: 1.8,
+          pointRadius: 2.5,
+          pointHoverRadius: 4,
+          tension: 0.16,
+          spanGaps: true
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: "top",
+          align: "start"
+        },
+        tooltip: {
+          backgroundColor: THEME.surface,
+          titleColor: THEME.textStrong,
+          bodyColor: THEME.textBody,
+          borderColor: THEME.borderStrong,
+          borderWidth: 1
+        },
+        toleranceLines: {
+          yLines: [100],
+          color: THEME.textMuted
+        }
+      },
+      scales: {
+        ...buildChartScales(),
+        x: {
+          ...buildChartScales().x,
+          title: { display: true, text: "ID do furo", color: THEME.textBody, font: { weight: "600" } }
+        },
+        y: {
+          ...buildChartScales().y,
+          title: { display: true, text: "% do limite configurado", color: THEME.textBody, font: { weight: "600" } },
+          min: 0,
+          max: normalizedLimit
+        }
+      }
+    }
+  });
+
+  els.angleChartTitle.textContent = "Ângulo frontal";
+  els.directionChartTitle.textContent = "Direção dos furos";
+  els.deviationChartTitle.textContent = "Distribuição de desvios";
 }
 
 function renderTable(rows) {
   els.dataTableBody.innerHTML = rows.slice(0, 40).map(row => `
     <tr>
       <td>${row.id}</td>
-      <td>${formatNumber(row.frontalAngle, 2)}</td>
-      <td>${formatNumber(row.azimuthDelta, 2)}</td>
-      <td>${formatNumber(row.depthDelta, 2)}</td>
-      <td>${formatNumber(row.plannedLength, 2)}</td>
-      <td>${formatNumber(row.executedLength, 2)}</td>
+      <td>${formatNumber(row.frontalAngle, 2)}°</td>
+      <td>${formatNumber(row.azimuthDelta, 2)}°</td>
+      <td>${formatNumber(row.depthDelta, 2)} m</td>
+      <td>${formatNumber(row.plannedLength, 2)} m</td>
+      <td>${formatNumber(row.executedLength, 2)} m</td>
     </tr>
   `).join("");
 }
 
-function depthSentence(avgDelta) {
-  if (!Number.isFinite(avgDelta)) return "Não foi possível consolidar a tendência de profundidade.";
-  if (avgDelta > 0.03) return "Os furos estão, em média, com profundidades maiores que as de projeto.";
-  if (avgDelta < -0.03) return "Os furos estão, em média, com profundidades menores que as de projeto.";
-  return "As profundidades médias estão próximas das profundidades de projeto.";
+function clearCharts() {
+  if (angleChart) {
+    angleChart.destroy();
+    angleChart = null;
+  }
+  if (directionChart) {
+    directionChart.destroy();
+    directionChart = null;
+  }
+  if (deviationChart) {
+    deviationChart.destroy();
+    deviationChart = null;
+  }
 }
 
-function renderSummary(rows) {
-  const metrics = calculateMetrics(rows);
-  const blast = state.blastName || "Fogo";
-
-  els.reportTitle.textContent = `Análise do fogo ${blast}`;
-  els.reportSubtitle.textContent = `Gerado automaticamente a partir do DXF ${currentFileName}`;
-  els.metricHoles.textContent = metrics.total.toLocaleString("pt-BR");
-  els.metricComparable.textContent = `${metrics.azComparable.toLocaleString("pt-BR")} com direção comparável`;
-  els.metricAngle.textContent = formatPercent(metrics.anglePct);
-  els.metricAzimuth.textContent = formatPercent(metrics.azPct);
-  els.metricDepth.textContent = formatPercent(metrics.depthPct);
-
-  const azNote = metrics.azComparable < metrics.total
-    ? `<br><span class="muted">Obs.: ${metrics.total - metrics.azComparable} furo(s) sem direção teórica em planta suficiente para comparação de azimute.</span>`
-    : "";
-
-  els.analysisText.innerHTML = `
-    <strong>Aderência de Ângulo = ${formatPercent(metrics.anglePct)}</strong> (Meta = ${state.limits.meta}%).<br>
-    <strong>Aderência Azimute = ${formatPercent(metrics.azPct)}</strong> (Meta = ${state.limits.meta}%).<br>
-    <strong>Aderência Z = ${formatPercent(metrics.depthPct)}</strong> (Meta = ${state.limits.meta}%).<br><br>
-    ${depthSentence(metrics.avgDepthDelta)}
-    ${azNote}
-  `;
+function renderEmptyState(message) {
+  currentRows = [];
+  clearCharts();
+  els.planMap.innerHTML = "<div class='empty-map'>Sem geometria disponível.</div>";
+  els.dataTableBody.innerHTML = "";
+  els.analysisText.innerHTML = `<p>${message}</p>`;
+  els.reportDate.textContent = formatDateTime(new Date());
+  els.reportSubtitle.textContent = currentFileName;
 }
 
 function renderAll(rows) {
@@ -622,7 +855,7 @@ function processDxfText(text, fileName) {
   const rows = calculateRows(holes);
 
   if (!rows.length) {
-    els.analysisText.innerHTML = "O DXF foi lido, mas não foram encontradas camadas compatíveis com Hole, Theoretical Hole e Real Hole.";
+    renderEmptyState("O DXF foi lido, mas não foram encontradas camadas compatíveis com Hole, Theoretical Hole e Real Hole.");
     return;
   }
 
@@ -636,14 +869,48 @@ async function loadDefaultDxf() {
     const text = await response.text();
     processDxfText(text, "PP23.dxf");
   } catch (error) {
-    els.analysisText.innerHTML = "Não foi possível carregar automaticamente o DXF padrão. Se estiver abrindo o arquivo localmente, selecione o DXF no campo acima ou execute por um servidor local.";
+    renderEmptyState("Não foi possível carregar automaticamente o DXF padrão. Se estiver abrindo o arquivo localmente, selecione o DXF manualmente ou execute o projeto por um servidor local.");
     console.error(error);
+  }
+}
+
+async function exportPdf() {
+  const blast = (state.blastName || "fogo").replace(/[^\w\-]+/g, "_").toLowerCase();
+  const report = document.getElementById("report");
+  const opt = {
+    margin: [8, 8, 8, 8],
+    filename: `analise-desvios-${blast}.pdf`,
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff"
+    },
+    jsPDF: {
+      unit: "mm",
+      format: "a4",
+      orientation: "landscape"
+    },
+    pagebreak: {
+      mode: ["css", "legacy"]
+    }
+  };
+
+  report.classList.add("report-sheet--exporting");
+  try {
+    if (document.fonts?.ready) {
+      await document.fonts.ready;
+    }
+    await html2pdf().set(opt).from(report).save();
+  } finally {
+    report.classList.remove("report-sheet--exporting");
   }
 }
 
 function wireEvents() {
   els.blastNameInput.addEventListener("input", event => {
     state.blastName = event.target.value.trim() || "Fogo";
+    els.headerBlastName.textContent = state.blastName;
     if (currentRows.length) renderAll(currentRows);
   });
 
@@ -677,17 +944,7 @@ function wireEvents() {
   });
 
   els.exportPdfBtn.addEventListener("click", () => {
-    const blast = (state.blastName || "fogo").replace(/[^\w\-]+/g, "_").toLowerCase();
-    const opt = {
-      margin: 6,
-      filename: `analise-desvios-${blast}.pdf`,
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
-      jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
-      pagebreak: { mode: ["avoid-all", "css", "legacy"] }
-    };
-
-    html2pdf().set(opt).from(document.getElementById("report")).save();
+    exportPdf().catch(error => console.error(error));
   });
 }
 

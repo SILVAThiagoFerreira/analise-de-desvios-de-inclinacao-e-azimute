@@ -3,133 +3,212 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OpenBlast | Análise de Desvios</title>
-  <meta name="description" content="Dashboard estático para análise de desvios de inclinação, azimute e profundidade a partir de DXF." />
+  <title>Análise de Desvios de Inclinação e Azimute</title>
+  <meta name="description" content="Relatório técnico estático para análise de desvios de inclinação, azimute e profundidade a partir de DXF." />
   <link rel="stylesheet" href="styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
-  <main class="page-shell">
-    <section class="hero">
-      <div class="brand-block">
-        <img src="assets/openblast-logo.png" alt="OpenBlast" class="openblast-logo" />
-        <div>
-          <p class="eyebrow">Controle de execução de pré-corte</p>
+  <main class="app-shell">
+    <header class="site-header no-print">
+      <div class="site-header__topline">
+        <p class="site-kicker">Relatório técnico</p>
+        <img src="assets/default-report-logo.png" alt="Identidade do relatório" class="brand-logo" />
+      </div>
+
+      <div class="site-header__body">
+        <div class="site-header__copy">
           <h1>Análise de Desvios de Inclinação e Azimute</h1>
-          <p class="hero-copy">Leitura direta do DXF, com comparação entre planejado, executado e limites de aderência.</p>
+          <p class="site-subtitle">Leitura direta do DXF, comparação entre planejado, executado e limites de aderência.</p>
+        </div>
+
+        <div class="site-header__meta">
+          <div class="header-meta-card">
+            <span class="header-meta-card__label">Fogo analisado</span>
+            <strong id="headerBlastName" class="header-meta-card__value">PP23</strong>
+          </div>
+          <div class="action-group">
+            <button id="exportPdfBtn" class="btn btn-primary" type="button">Exportar PDF</button>
+            <label for="dxfInput" class="btn btn-secondary">Carregar DXF</label>
+            <label for="logoInput" class="btn btn-secondary">Inserir logo</label>
+            <button id="reloadDefaultBtn" class="btn btn-tertiary" type="button">Recarregar padrão</button>
+          </div>
         </div>
       </div>
+    </header>
 
-      <div class="hero-actions">
-        <button id="exportPdfBtn" class="btn btn-primary" type="button">Exportar PDF</button>
-        <button id="reloadDefaultBtn" class="btn btn-secondary" type="button">Recarregar DXF padrão</button>
-      </div>
-    </section>
-
-    <section class="control-panel no-print">
-      <div class="field">
-        <label for="blastNameInput">Nome do fogo analisado</label>
-        <input id="blastNameInput" type="text" value="PP23" placeholder="Ex.: PC020, PP020, PP23" />
-      </div>
-
-      <div class="field">
-        <label for="dxfInput">DXF da análise</label>
-        <input id="dxfInput" type="file" accept=".dxf" />
-        <span class="hint">O projeto já carrega o DXF padrão recebido neste pacote.</span>
-      </div>
-
-      <div class="field">
-        <label for="logoInput">Logo do relatório</label>
-        <input id="logoInput" type="file" accept="image/*" />
-        <span class="hint">Caso não envie outro arquivo, será utilizado o logo padrão do pacote.</span>
-      </div>
-
-      <div class="field small-grid">
-        <label for="angleMinInput">Limites de ângulo</label>
-        <div class="inline-inputs">
-          <input id="angleMinInput" type="number" step="0.01" value="12" />
-          <input id="angleMaxInput" type="number" step="0.01" value="18" />
+    <section class="parameter-panel no-print">
+      <div class="parameter-panel__header">
+        <div>
+          <p class="section-kicker">Parâmetros</p>
+          <h2>Entrada e limites de referência</h2>
         </div>
+        <p class="parameter-panel__text">Os campos abaixo controlam apenas a apresentação do relatório e os limites de aderência exibidos na análise.</p>
       </div>
 
-      <div class="field small-grid">
-        <label for="azLimitInput">Limite de azimute</label>
-        <input id="azLimitInput" type="number" step="0.01" value="6" />
-      </div>
+      <div class="parameter-grid">
+        <div class="field">
+          <label for="blastNameInput">Nome do fogo analisado</label>
+          <input id="blastNameInput" type="text" value="PP23" placeholder="Ex.: PC020, PP020, PP23" />
+        </div>
 
-      <div class="field small-grid">
-        <label for="depthLimitInput">Limite de profundidade</label>
-        <input id="depthLimitInput" type="number" step="0.01" value="0.20" />
+        <div class="field">
+          <label for="dxfInput">DXF da análise</label>
+          <input id="dxfInput" type="file" accept=".dxf" />
+          <span class="hint">O DXF padrão do pacote é carregado automaticamente na abertura da página.</span>
+        </div>
+
+        <div class="field">
+          <label for="logoInput">Logo do relatório</label>
+          <input id="logoInput" type="file" accept="image/*" />
+          <span class="hint">Se nenhum arquivo for enviado, o relatório utiliza o logo padrão embutido no pacote.</span>
+        </div>
+
+        <div class="field field--inline">
+          <label for="angleMinInput">Limite de ângulo</label>
+          <div class="inline-inputs">
+            <div class="inline-field">
+              <span>Mín.</span>
+              <input id="angleMinInput" type="number" step="0.01" value="12" />
+            </div>
+            <div class="inline-field">
+              <span>Máx.</span>
+              <input id="angleMaxInput" type="number" step="0.01" value="18" />
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="azLimitInput">Limite de azimute</label>
+          <input id="azLimitInput" type="number" step="0.01" value="6" />
+        </div>
+
+        <div class="field">
+          <label for="depthLimitInput">Limite de profundidade</label>
+          <input id="depthLimitInput" type="number" step="0.01" value="0.20" />
+        </div>
       </div>
     </section>
 
     <section id="report" class="report-sheet">
-      <header class="report-header">
-        <div>
-          <p class="report-kicker">Relatório técnico</p>
-          <h2 id="reportTitle">Análise do fogo PP23</h2>
-          <p id="reportSubtitle" class="muted">Gerado automaticamente a partir do DXF PP23.dxf</p>
+      <header class="report-header page-break-avoid">
+        <div class="report-header__topline">
+          <span class="report-kicker">Relatório técnico</span>
+          <img id="reportLogo" class="report-logo" src="assets/default-report-logo.png" alt="Logo do relatório" />
         </div>
-        <img id="reportLogo" class="report-logo" src="assets/default-report-logo.png" alt="Logo do relatório" />
+
+        <div class="report-header__body">
+          <div class="report-header__main">
+            <h2 id="reportTitle">Análise do fogo PP23</h2>
+            <p class="report-intro">Leitura direta do DXF, comparação entre planejado, executado e limites de aderência.</p>
+          </div>
+
+          <div class="report-header__side">
+            <div id="reportFireTag" class="report-fire-tag">Fogo PP23</div>
+          </div>
+        </div>
+
+        <div class="report-meta-grid">
+          <div class="report-meta-item">
+            <span class="report-meta-item__label">Data de geração</span>
+            <strong id="reportDate" class="report-meta-item__value">--</strong>
+          </div>
+          <div class="report-meta-item">
+            <span class="report-meta-item__label">Arquivo de origem</span>
+            <strong id="reportSubtitle" class="report-meta-item__value">PP23.dxf</strong>
+          </div>
+          <div class="report-meta-item report-meta-item--wide">
+            <span class="report-meta-item__label">Contexto</span>
+            <strong id="reportSource" class="report-meta-item__value">Fonte: DXF padrão do pacote</strong>
+          </div>
+        </div>
       </header>
 
-      <section class="summary-grid">
-        <article class="metric-card">
+      <section class="summary-grid page-break-avoid">
+        <article class="metric-card" id="metricHolesCard">
           <span class="metric-label">Furos analisados</span>
           <strong id="metricHoles">0</strong>
-          <small id="metricComparable">0 com direção comparável</small>
+          <small id="metricComparable">0 com direção comparável em planta</small>
         </article>
-        <article class="metric-card">
+        <article class="metric-card" id="metricAngleCard">
           <span class="metric-label">Aderência de Ângulo</span>
           <strong id="metricAngle">0,00%</strong>
-          <small>Meta = 80%</small>
+          <small>Meta de referência: 80%</small>
         </article>
-        <article class="metric-card">
+        <article class="metric-card" id="metricAzimuthCard">
           <span class="metric-label">Aderência Azimute</span>
           <strong id="metricAzimuth">0,00%</strong>
-          <small>Meta = 80%</small>
+          <small>Meta de referência: 80%</small>
         </article>
-        <article class="metric-card">
+        <article class="metric-card" id="metricDepthCard">
           <span class="metric-label">Aderência Z</span>
           <strong id="metricDepth">0,00%</strong>
-          <small>Meta = 80%</small>
+          <small>Meta de referência: 80%</small>
         </article>
       </section>
 
-      <section class="analysis-card">
-        <h3>Análise objetiva</h3>
+      <section class="analysis-card page-break-avoid">
+        <div class="section-title-row">
+          <div>
+            <p class="section-kicker">Síntese</p>
+            <h3>Análise objetiva</h3>
+          </div>
+        </div>
         <div id="analysisText" class="analysis-text">
-          Aguardando leitura do DXF.
+          <p>Aguardando leitura do DXF.</p>
         </div>
       </section>
 
-      <section class="map-card">
+      <section class="map-card page-break-avoid">
         <div class="section-title-row">
           <div>
+            <p class="section-kicker">Geometria</p>
             <h3>Mapa de execução</h3>
-            <p class="muted">Azul = planejado | Vermelho = executado | O = emboque</p>
+            <p class="section-note">Planejado em cinza escuro, executado em vermelho institucional e emboques com marcação discreta.</p>
           </div>
         </div>
         <div id="planMap" class="plan-map"></div>
       </section>
 
       <section class="charts-grid">
-        <article class="chart-card">
-          <h3 id="angleChartTitle">Ângulo Frontal [PP23]</h3>
+        <article class="chart-card page-break-avoid">
+          <div class="section-title-row">
+            <div>
+              <p class="section-kicker">Gráfico</p>
+              <h3 id="angleChartTitle">Ângulo frontal</h3>
+            </div>
+          </div>
           <canvas id="angleChart"></canvas>
         </article>
-        <article class="chart-card">
-          <h3 id="directionChartTitle">Direção dos Furos [PP23]</h3>
+
+        <article class="chart-card page-break-avoid">
+          <div class="section-title-row">
+            <div>
+              <p class="section-kicker">Gráfico</p>
+              <h3 id="directionChartTitle">Direção dos furos</h3>
+            </div>
+          </div>
           <canvas id="directionChart"></canvas>
+        </article>
+
+        <article class="chart-card chart-card--wide page-break-avoid">
+          <div class="section-title-row">
+            <div>
+              <p class="section-kicker">Gráfico</p>
+              <h3 id="deviationChartTitle">Distribuição de desvios</h3>
+            </div>
+          </div>
+          <canvas id="deviationChart"></canvas>
         </article>
       </section>
 
-      <section class="data-table-card">
+      <section class="data-table-card page-break-avoid">
         <div class="section-title-row">
           <div>
-            <h3>Base calculada</h3>
-            <p class="muted">Amostra com os primeiros furos do DXF para conferência.</p>
+            <p class="section-kicker">Base calculada</p>
+            <h3>Tabela de conferência</h3>
+            <p class="section-note">Amostra dos primeiros furos processados a partir do DXF para conferência técnica.</p>
           </div>
         </div>
         <div class="table-wrap">
@@ -137,11 +216,11 @@
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Ângulo [°]</th>
-                <th>Δ Azimute [°]</th>
-                <th>Δ Profundidade [m]</th>
-                <th>Prof. projeto [m]</th>
-                <th>Prof. executada [m]</th>
+                <th>Ângulo</th>
+                <th>Azimute</th>
+                <th>Δ Profundidade</th>
+                <th>Profundidade projetada</th>
+                <th>Profundidade executada</th>
               </tr>
             </thead>
             <tbody id="dataTableBody"></tbody>
