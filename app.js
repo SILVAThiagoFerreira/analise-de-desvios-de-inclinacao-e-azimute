@@ -1,5 +1,5 @@
 const DEFAULT_DXF_PATH = "data/PP23.dxf";
-const DEFAULT_REPORT_LOGO_PATH = "assets/default-report-logo.png";
+const DEFAULT_REPORT_LOGO_PATH = "assets/openblast-logo.png";
 
 const THEME = {
   accent: "#E30613",
