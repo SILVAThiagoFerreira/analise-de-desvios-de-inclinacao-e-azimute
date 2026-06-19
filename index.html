@@ -7,6 +7,8 @@
   <meta name="description" content="Relatório técnico estático para análise de desvios de inclinação, azimute e profundidade a partir de DXF." />
   <link rel="stylesheet" href="styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
@@ -95,7 +97,10 @@
       <header class="report-header page-break-avoid">
         <div class="report-header__topline">
           <span class="report-kicker">Relatório técnico</span>
-          <img id="reportLogo" class="report-logo" src="assets/openblast-logo.png" alt="Logo do relatório" />
+          <div id="reportLogoBlock" class="report-logo-block">
+            <img id="reportLogo" class="report-logo" src="assets/openblast-logo.png" alt="Logo do relatório" />
+            <div id="reportLogoWordmark" class="report-logo-wordmark" aria-hidden="true">OPENBLAST</div>
+          </div>
         </div>
 
         <div class="report-header__body">

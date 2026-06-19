@@ -20,6 +20,7 @@ let directionChart;
 let deviationChart;
 let currentRows = [];
 let currentFileName = "PP23.dxf";
+let currentReportLogoDataUrl = null;
 
 const state = {
   blastName: "PP23",
@@ -47,7 +48,9 @@ const els = {
   reportSource: document.getElementById("reportSource"),
   reportDate: document.getElementById("reportDate"),
   reportFireTag: document.getElementById("reportFireTag"),
+  reportLogoBlock: document.getElementById("reportLogoBlock"),
   reportLogo: document.getElementById("reportLogo"),
+  reportLogoWordmark: document.getElementById("reportLogoWordmark"),
   metricHolesCard: document.getElementById("metricHolesCard"),
   metricAngleCard: document.getElementById("metricAngleCard"),
   metricAzimuthCard: document.getElementById("metricAzimuthCard"),
@@ -407,6 +410,7 @@ Chart.defaults.font.family = "Inter, Arial, Helvetica, system-ui, sans-serif";
 Chart.defaults.color = THEME.textMuted;
 Chart.defaults.plugins.legend.labels.boxWidth = 12;
 Chart.defaults.plugins.legend.labels.boxHeight = 12;
+Chart.defaults.devicePixelRatio = Math.max(window.devicePixelRatio || 1, 2);
 
 function computeSymmetricExtent(values, limit, floorValue) {
   const valid = values.filter(Number.isFinite).map(value => Math.abs(value));
@@ -497,15 +501,56 @@ function renderSummary(rows) {
   els.analysisText.innerHTML = paragraphs;
 }
 
-function resetReportLogo() {
-  els.reportLogo.src = DEFAULT_REPORT_LOGO_PATH;
+function normalizeImageToDataUrl(source) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = image.naturalWidth || image.width;
+      canvas.height = image.naturalHeight || image.height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("Não foi possível preparar o logo para exportação."));
+        return;
+      }
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(image, 0, 0);
+      resolve(canvas.toDataURL("image/jpeg", 0.96));
+    };
+    image.onerror = () => reject(new Error("Falha ao normalizar o logo para exportação."));
+    image.src = source;
+  });
+}
+
+async function applyReportLogo(source) {
+  const normalized = await normalizeImageToDataUrl(source);
+  currentReportLogoDataUrl = normalized;
+  els.reportLogo.src = normalized;
+  return normalized;
+}
+
+async function resetReportLogo() {
+  return applyReportLogo(DEFAULT_REPORT_LOGO_PATH);
+}
+
+async function ensureReportLogoReady() {
+  if (currentReportLogoDataUrl?.startsWith("data:image/")) {
+    return currentReportLogoDataUrl;
+  }
+  return applyReportLogo(els.reportLogo.src || DEFAULT_REPORT_LOGO_PATH);
 }
 
 function openFilePicker(input) {
   input.value = "";
-  if (typeof input.showPicker === "function") {
-    input.showPicker();
-    return;
+  try {
+    if (typeof input.showPicker === "function") {
+      input.showPicker();
+      return;
+    }
+  } catch (error) {
+    console.warn("showPicker indisponível, usando fallback de clique.", error);
   }
   input.click();
 }
@@ -893,24 +938,11 @@ async function loadDefaultDxf() {
 async function exportPdf() {
   const blast = (state.blastName || "fogo").replace(/[^\w\-]+/g, "_").toLowerCase();
   const report = document.getElementById("report");
-  const opt = {
-    margin: [8, 8, 8, 8],
-    filename: `analise-desvios-${blast}.pdf`,
-    image: { type: "jpeg", quality: 0.98 },
-    html2canvas: {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: "#ffffff"
-    },
-    jsPDF: {
-      unit: "mm",
-      format: "a4",
-      orientation: "landscape"
-    },
-    pagebreak: {
-      mode: ["css", "legacy"]
-    }
-  };
+  const filename = `analise-desvios-${blast}.pdf`;
+  const { jsPDF } = window.jspdf || {};
+  if (typeof window.html2canvas !== "function" || !jsPDF) {
+    throw new Error("Bibliotecas de exportação não disponíveis.");
+  }
 
   report.classList.add("report-sheet--exporting");
   els.exportPdfBtn.disabled = true;
@@ -920,11 +952,85 @@ async function exportPdf() {
       await document.fonts.ready;
     }
 
+    await ensureReportLogoReady();
+
     await new Promise(resolve => {
       requestAnimationFrame(() => requestAnimationFrame(resolve));
     });
 
-    await html2pdf().set(opt).from(report).save();
+    const canvas = await window.html2canvas(report, {
+      scale: Math.max(window.devicePixelRatio || 1, 2.5),
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      logging: false
+    });
+
+    const pdf = new jsPDF({
+      orientation: "landscape",
+      unit: "mm",
+      format: "a4",
+      compress: true
+    });
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 8;
+    const printableWidth = pageWidth - margin * 2;
+    const printableHeight = pageHeight - margin * 2;
+    const mmPerPixel = printableWidth / canvas.width;
+    const pagePixelHeight = Math.floor(printableHeight / mmPerPixel);
+
+    let renderedHeight = 0;
+    let pageIndex = 0;
+
+    while (renderedHeight < canvas.height) {
+      const sliceHeight = Math.min(pagePixelHeight, canvas.height - renderedHeight);
+      const pageCanvas = document.createElement("canvas");
+      pageCanvas.width = canvas.width;
+      pageCanvas.height = sliceHeight;
+
+      const pageContext = pageCanvas.getContext("2d");
+      if (!pageContext) {
+        throw new Error("Não foi possível preparar o PDF para download.");
+      }
+
+      pageContext.fillStyle = "#ffffff";
+      pageContext.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+      pageContext.drawImage(
+        canvas,
+        0,
+        renderedHeight,
+        canvas.width,
+        sliceHeight,
+        0,
+        0,
+        pageCanvas.width,
+        pageCanvas.height
+      );
+
+      const imageData = pageCanvas.toDataURL("image/jpeg", 0.98);
+      const renderedPageHeight = sliceHeight * mmPerPixel;
+
+      if (pageIndex > 0) {
+        pdf.addPage();
+      }
+
+      pdf.addImage(
+        imageData,
+        "JPEG",
+        margin,
+        margin,
+        printableWidth,
+        renderedPageHeight,
+        undefined,
+        "FAST"
+      );
+
+      renderedHeight += sliceHeight;
+      pageIndex += 1;
+    }
+
+    pdf.save(filename);
   } finally {
     els.exportPdfBtn.disabled = false;
     els.exportPdfBtn.textContent = "Exportar PDF";
@@ -953,8 +1059,12 @@ function wireEvents() {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = () => {
-      els.reportLogo.src = String(reader.result || "");
+    reader.onload = async () => {
+      try {
+        await applyReportLogo(String(reader.result || ""));
+      } catch (error) {
+        console.error(error);
+      }
     };
     reader.readAsDataURL(file);
   });
@@ -977,13 +1087,16 @@ function wireEvents() {
   });
 
   els.exportPdfBtn.addEventListener("click", () => {
-    exportPdf().catch(error => console.error(error));
+    exportPdf().catch(error => {
+      console.error(error);
+      window.alert("Não foi possível gerar o PDF automaticamente nesta tentativa.");
+    });
   });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   applyLimitsFromInputs();
-  resetReportLogo();
+  resetReportLogo().catch(error => console.error(error));
   wireEvents();
   loadDefaultDxf();
 });
