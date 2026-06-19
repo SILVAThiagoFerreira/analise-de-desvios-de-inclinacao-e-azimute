@@ -507,11 +507,13 @@ p {
 .analysis-card,
 .map-card,
 .chart-card,
+.control-card,
 .data-table-card {
   padding: 18px;
 }
 
 .analysis-card,
+.control-card,
 .map-card,
 .data-table-card {
   margin-bottom: 18px;
@@ -535,6 +537,57 @@ p {
   margin-bottom: 0;
   color: var(--text-muted);
   font-size: 12px;
+}
+
+.section-caption {
+  margin-bottom: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-align: right;
+}
+
+.control-card {
+  background: #ffffff;
+  border: 1px solid var(--border);
+}
+
+.control-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.control-item {
+  min-height: 128px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+}
+
+.control-item__title {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.control-item__value {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--text-strong);
+  font-size: 24px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.control-item__detail {
+  display: block;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.55;
 }
 
 .analysis-text {
@@ -702,6 +755,7 @@ tbody tr:nth-child(even) {
   }
 
   .parameter-grid,
+  .control-grid,
   .summary-grid,
   .charts-grid {
     grid-template-columns: 1fr 1fr;
@@ -739,6 +793,7 @@ tbody tr:nth-child(even) {
   }
 
   .parameter-grid,
+  .control-grid,
   .summary-grid,
   .charts-grid {
     grid-template-columns: 1fr;

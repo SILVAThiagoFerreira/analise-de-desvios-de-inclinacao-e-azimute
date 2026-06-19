@@ -45,8 +45,8 @@ const state = {
   limits: {
     angleMin: 12,
     angleMax: 18,
-    azimuth: 6,
-    depth: 0.20,
+    azimuth: 5,
+    depth: 0.25,
     meta: 80
   }
 };
@@ -80,6 +80,16 @@ const els = {
   metricAngleMeta: document.getElementById("metricAngleMeta"),
   metricAzimuthMeta: document.getElementById("metricAzimuthMeta"),
   metricDepthMeta: document.getElementById("metricDepthMeta"),
+  controlMetaText: document.getElementById("controlMetaText"),
+  controlAngleExpected: document.getElementById("controlAngleExpected"),
+  controlAngleLimits: document.getElementById("controlAngleLimits"),
+  controlAngleTolerance: document.getElementById("controlAngleTolerance"),
+  controlAzimuthExpected: document.getElementById("controlAzimuthExpected"),
+  controlAzimuthLimits: document.getElementById("controlAzimuthLimits"),
+  controlAzimuthTolerance: document.getElementById("controlAzimuthTolerance"),
+  controlDepthExpected: document.getElementById("controlDepthExpected"),
+  controlDepthLimits: document.getElementById("controlDepthLimits"),
+  controlDepthTolerance: document.getElementById("controlDepthTolerance"),
   analysisText: document.getElementById("analysisText"),
   planMap: document.getElementById("planMap"),
   dataTableBody: document.getElementById("dataTableBody"),
@@ -108,6 +118,13 @@ function formatNumber(value, digits = 2) {
 function formatPercent(value) {
   if (!Number.isFinite(value)) return "N/A";
   return `${formatNumber(value, 2)}%`;
+}
+
+function formatSignedNumber(value, digits = 2, unit = "") {
+  if (!Number.isFinite(value)) return "N/A";
+  if (value === 0) return `${formatNumber(0, digits)}${unit}`;
+  const sign = value > 0 ? "+" : "-";
+  return `${sign}${formatNumber(Math.abs(value), digits)}${unit}`;
 }
 
 function formatDateTime(value) {
@@ -527,6 +544,24 @@ function renderSummary(rows) {
     .join("");
 
   els.analysisText.innerHTML = paragraphs;
+}
+
+function renderControlParameters() {
+  const angleExpected = (state.limits.angleMin + state.limits.angleMax) / 2;
+  const angleTolerance = Math.abs(state.limits.angleMax - state.limits.angleMin) / 2;
+
+  els.controlMetaText.textContent = `${formatNumber(state.limits.meta, 0)}%`;
+  els.controlAngleExpected.textContent = `${formatNumber(angleExpected, 2)}°`;
+  els.controlAngleLimits.textContent = `Limites: ${formatNumber(state.limits.angleMin, 2)}° a ${formatNumber(state.limits.angleMax, 2)}°`;
+  els.controlAngleTolerance.textContent = `Tolerância: ±${formatNumber(angleTolerance, 2)}°`;
+
+  els.controlAzimuthExpected.textContent = "0,00°";
+  els.controlAzimuthLimits.textContent = `Limites: ${formatSignedNumber(-state.limits.azimuth, 2, "°")} a ${formatSignedNumber(state.limits.azimuth, 2, "°")}`;
+  els.controlAzimuthTolerance.textContent = `Tolerância: ±${formatNumber(state.limits.azimuth, 2)}°`;
+
+  els.controlDepthExpected.textContent = "0,00 m";
+  els.controlDepthLimits.textContent = `Limites: ${formatSignedNumber(-state.limits.depth, 2, " m")} a ${formatSignedNumber(state.limits.depth, 2, " m")}`;
+  els.controlDepthTolerance.textContent = `Tolerância: ±${formatNumber(state.limits.depth, 2)} m`;
 }
 
 function normalizeImageToDataUrl(source) {
@@ -954,6 +989,7 @@ function renderEmptyState(message) {
 
 function renderAll(rows) {
   currentRows = rows;
+  renderControlParameters();
   renderSummary(rows);
   renderPlanMap(rows);
   renderCharts(rows);
@@ -963,8 +999,8 @@ function renderAll(rows) {
 function applyLimitsFromInputs() {
   state.limits.angleMin = toNumber(els.angleMinInput.value, 12);
   state.limits.angleMax = toNumber(els.angleMaxInput.value, 18);
-  state.limits.azimuth = toNumber(els.azLimitInput.value, 6);
-  state.limits.depth = toNumber(els.depthLimitInput.value, 0.20);
+  state.limits.azimuth = toNumber(els.azLimitInput.value, 5);
+  state.limits.depth = toNumber(els.depthLimitInput.value, 0.25);
 }
 
 function processDxfText(text, fileName) {

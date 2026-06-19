@@ -46,7 +46,7 @@
           <p class="section-kicker">Parâmetros</p>
           <h2>Entrada e limites de referência</h2>
         </div>
-        <p class="parameter-panel__text">Os campos abaixo controlam apenas a apresentação do relatório e os limites de aderência exibidos na análise.</p>
+        <p class="parameter-panel__text">Parâmetros objetivos padrão: ângulo 15° com faixa de 12° a 18°, azimute 0° com tolerância de ±5°, profundidade 0,00 m com tolerância de ±0,25 m e meta mínima de aderência de 80%.</p>
       </div>
 
       <div class="parameter-grid">
@@ -83,12 +83,12 @@
 
         <div class="field">
           <label for="azLimitInput">Limite de azimute</label>
-          <input id="azLimitInput" type="number" step="0.01" value="6" />
+          <input id="azLimitInput" type="number" step="0.01" value="5" />
         </div>
 
         <div class="field">
           <label for="depthLimitInput">Limite de profundidade</label>
-          <input id="depthLimitInput" type="number" step="0.01" value="0.20" />
+          <input id="depthLimitInput" type="number" step="0.01" value="0.25" />
         </div>
       </div>
     </section>
@@ -151,6 +151,37 @@
           <strong id="metricDepth">0,00%</strong>
           <small id="metricDepthMeta">Meta = 80%</small>
         </article>
+      </section>
+
+      <section class="control-card page-break-avoid">
+        <div class="section-title-row">
+          <div>
+            <p class="section-kicker">Controle</p>
+            <h3>Parâmetros objetivos de controle</h3>
+          </div>
+          <p class="section-caption">Critério mínimo de aderência: <strong id="controlMetaText">80%</strong> dos furos dentro dos limites definidos.</p>
+        </div>
+
+        <div class="control-grid">
+          <article class="control-item">
+            <span class="control-item__title">Ângulo frontal</span>
+            <strong id="controlAngleExpected" class="control-item__value">15,00°</strong>
+            <small id="controlAngleLimits" class="control-item__detail">Limites: 12,00° a 18,00°</small>
+            <small id="controlAngleTolerance" class="control-item__detail">Tolerância: ±3,00°</small>
+          </article>
+          <article class="control-item">
+            <span class="control-item__title">Azimute / Direção dos furos</span>
+            <strong id="controlAzimuthExpected" class="control-item__value">0,00°</strong>
+            <small id="controlAzimuthLimits" class="control-item__detail">Limites: -5,00° a +5,00°</small>
+            <small id="controlAzimuthTolerance" class="control-item__detail">Tolerância: ±5,00°</small>
+          </article>
+          <article class="control-item">
+            <span class="control-item__title">Profundidade / Z</span>
+            <strong id="controlDepthExpected" class="control-item__value">0,00 m</strong>
+            <small id="controlDepthLimits" class="control-item__detail">Limites: -0,25 m a +0,25 m</small>
+            <small id="controlDepthTolerance" class="control-item__detail">Tolerância: ±0,25 m</small>
+          </article>
+        </div>
       </section>
 
       <section class="analysis-card page-break-avoid">

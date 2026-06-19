@@ -4,6 +4,15 @@ Site estático para análise de desvios de inclinação, azimute e profundidade 
 
 O projeto já vem com o arquivo `data/PP23.dxf` carregado como base padrão e pode rodar diretamente no GitHub Pages.
 
+## Parâmetros objetivos padrão
+
+O site e o relatório saem configurados com os seguintes critérios objetivos de controle:
+
+- Ângulo frontal: valor esperado `15°`, com limites de `12°` a `18°` e tolerância de `±3°`.
+- Azimute: valor esperado `0°` de desvio, com limites de `-5°` a `+5°` e tolerância de `±5°`.
+- Profundidade / Z: valor esperado `0,00 m` de desvio, com limites de `-0,25 m` a `+0,25 m` e tolerância de `±0,25 m`.
+- Meta de aderência: mínimo de `80%` dos furos dentro dos limites definidos.
+
 ## O que o site entrega
 
 - Campo para informar o nome do fogo analisado.
