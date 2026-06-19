@@ -1,5 +1,5 @@
 const DEFAULT_DXF_PATH = "data/PP23.dxf";
-const DEFAULT_REPORT_LOGO_PATH = "assets/openblast-logo.png";
+const DEFAULT_REPORT_LOGO_PATH = "assets/default-report-logo.png";
 
 const THEME = {
   accent: "#E30613",
@@ -501,6 +501,15 @@ function resetReportLogo() {
   els.reportLogo.src = DEFAULT_REPORT_LOGO_PATH;
 }
 
+function openFilePicker(input) {
+  input.value = "";
+  if (typeof input.showPicker === "function") {
+    input.showPicker();
+    return;
+  }
+  input.click();
+}
+
 function renderPlanMap(rows) {
   if (!rows.length) {
     els.planMap.innerHTML = "<div class='empty-map'>Sem geometria disponível.</div>";
@@ -960,11 +969,11 @@ function wireEvents() {
   });
 
   els.loadDxfBtn.addEventListener("click", () => {
-    els.dxfInput.click();
+    openFilePicker(els.dxfInput);
   });
 
   els.loadLogoBtn.addEventListener("click", () => {
-    els.logoInput.click();
+    openFilePicker(els.logoInput);
   });
 
   els.reloadDefaultBtn.addEventListener("click", () => loadDefaultDxf());
