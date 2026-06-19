@@ -76,9 +76,9 @@ p {
 
 .site-header__body {
   display: grid;
-  grid-template-columns: minmax(0, 1.8fr) minmax(320px, 0.9fr);
-  gap: 24px;
-  align-items: end;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 332px);
+  gap: 28px;
+  align-items: start;
   padding-top: 18px;
 }
 
@@ -110,8 +110,12 @@ p {
 
 .site-header__meta {
   display: grid;
-  gap: 14px;
-  justify-items: end;
+  gap: 12px;
+  justify-items: stretch;
+  align-content: start;
+  width: 100%;
+  max-width: 332px;
+  margin-left: auto;
 }
 
 .brand-logo {
@@ -121,8 +125,10 @@ p {
 }
 
 .header-meta-card {
-  min-width: 180px;
-  padding: 10px 12px;
+  width: 100%;
+  min-width: 0;
+  min-height: 104px;
+  padding: 18px 20px;
   border: 1px solid var(--border);
   background: #ffffff;
 }
@@ -139,31 +145,39 @@ p {
 
 .header-meta-card__value {
   color: var(--text-strong);
-  font-size: 16px;
+  font-size: 24px;
   font-weight: 700;
+  line-height: 1.1;
 }
 
 .action-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: flex-end;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+
+.action-group .btn:first-child,
+.action-group .btn:last-child {
+  grid-column: 1 / -1;
 }
 
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 36px;
-  padding: 0 14px;
+  width: 100%;
+  min-height: 54px;
+  padding: 0 18px;
   border-radius: 0;
   border: 1px solid var(--border-strong);
   background: var(--surface);
   color: var(--text-body);
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   letter-spacing: 0.02em;
+  white-space: nowrap;
   text-decoration: none;
   transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
 }
@@ -674,11 +688,13 @@ tbody tr:nth-child(even) {
   .site-header__meta,
   .report-header__side {
     align-items: flex-start;
-    justify-items: start;
+    justify-items: stretch;
+    margin-left: 0;
+    max-width: 100%;
   }
 
   .action-group {
-    justify-content: flex-start;
+    max-width: 560px;
   }
 
   .parameter-panel__text {
@@ -718,10 +734,24 @@ tbody tr:nth-child(even) {
     flex-direction: column;
   }
 
+  .site-header h1 {
+    font-size: clamp(24px, 7vw, 44px);
+  }
+
   .parameter-grid,
   .summary-grid,
   .charts-grid {
     grid-template-columns: 1fr;
+  }
+
+  .action-group {
+    grid-template-columns: 1fr;
+    max-width: 100%;
+  }
+
+  .action-group .btn:first-child,
+  .action-group .btn:last-child {
+    grid-column: auto;
   }
 
   .chart-card,
