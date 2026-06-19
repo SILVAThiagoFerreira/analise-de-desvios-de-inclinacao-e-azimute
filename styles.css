@@ -312,14 +312,20 @@ p {
 }
 
 .report-sheet {
-  margin-top: 20px;
-  padding: 26px 28px;
+  width: min(980px, 100%);
+  margin: 20px auto 0;
+  padding: 28px 30px;
   border-radius: var(--radius-lg);
   box-shadow: none;
 }
 
+.report-sheet--exporting {
+  width: 794px;
+  max-width: 794px;
+}
+
 .report-header {
-  padding-bottom: 24px;
+  padding-bottom: 22px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -333,10 +339,10 @@ p {
 
 .report-header__body {
   display: grid;
-  grid-template-columns: minmax(0, 1.8fr) minmax(180px, 0.5fr);
-  gap: 20px;
+  grid-template-columns: minmax(0, 1fr) minmax(160px, 220px);
+  gap: 18px;
   align-items: start;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .report-kicker {
@@ -415,7 +421,7 @@ p {
 
 .report-meta-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -427,7 +433,7 @@ p {
 }
 
 .report-meta-item--wide {
-  grid-column: span 1;
+  grid-column: 1 / -1;
 }
 
 .report-meta-item__label {
@@ -450,9 +456,9 @@ p {
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
-  margin: 20px 0 18px;
+  margin: 20px 0 16px;
   align-items: stretch;
 }
 
@@ -553,13 +559,13 @@ p {
 
 .control-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 12px;
 }
 
 .control-item {
-  min-height: 128px;
-  padding: 16px;
+  min-height: 0;
+  padding: 16px 18px;
   border: 1px solid var(--border);
   background: var(--surface-soft);
 }
@@ -608,7 +614,7 @@ p {
 
 .plan-map {
   width: 100%;
-  height: 440px;
+  height: 360px;
   border: 1px solid var(--border);
   background:
     linear-gradient(90deg, rgba(17, 17, 17, 0.04) 1px, transparent 1px),
@@ -660,8 +666,8 @@ p {
 
 .charts-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  grid-template-columns: 1fr;
+  gap: 14px;
   margin-bottom: 20px;
   align-items: stretch;
 }
@@ -669,25 +675,25 @@ p {
 .chart-card {
   display: flex;
   flex-direction: column;
-  min-height: 448px;
+  min-height: 392px;
 }
 
 .chart-card--wide {
-  grid-column: 1 / -1;
-  min-height: 408px;
+  grid-column: auto;
+  min-height: 360px;
 }
 
 .chart-card canvas {
   width: 100% !important;
   display: block;
   flex: 1 1 auto;
-  min-height: 356px !important;
-  height: 356px !important;
+  min-height: 300px !important;
+  height: 300px !important;
 }
 
 .chart-card--wide canvas {
-  min-height: 308px !important;
-  height: 308px !important;
+  min-height: 260px !important;
+  height: 260px !important;
 }
 
 .table-wrap {
@@ -697,16 +703,19 @@ p {
 
 table {
   width: 100%;
-  min-width: 860px;
+  min-width: 0;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 th,
 td {
-  padding: 11px 12px;
+  padding: 9px 10px;
   border-bottom: 1px solid var(--border);
   text-align: left;
-  font-size: 12px;
+  font-size: 11px;
+  line-height: 1.4;
+  word-break: break-word;
 }
 
 th {
@@ -716,6 +725,7 @@ th {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  line-height: 1.35;
 }
 
 tr:last-child td {
@@ -755,7 +765,6 @@ tbody tr:nth-child(even) {
   }
 
   .parameter-grid,
-  .control-grid,
   .summary-grid,
   .charts-grid {
     grid-template-columns: 1fr 1fr;
@@ -765,8 +774,12 @@ tbody tr:nth-child(even) {
     grid-template-columns: 1fr;
   }
 
-  .chart-card--wide {
-    grid-column: auto;
+  .report-sheet {
+    width: 100%;
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -816,8 +829,8 @@ tbody tr:nth-child(even) {
 
   .chart-card canvas,
   .chart-card--wide canvas {
-    min-height: 300px !important;
-    height: 300px !important;
+    min-height: 280px !important;
+    height: 280px !important;
   }
 }
 
@@ -838,7 +851,8 @@ tbody tr:nth-child(even) {
 
   .report-sheet {
     margin-top: 0;
-    padding: 10mm;
+    width: 100%;
+    padding: 10mm 8mm;
     border: 0;
   }
 
@@ -854,11 +868,54 @@ tbody tr:nth-child(even) {
   .analysis-card,
   .map-card,
   .chart-card,
+  .control-card,
   .data-table-card {
     box-shadow: none;
   }
 
   .table-wrap {
     overflow: visible;
+  }
+
+  .report-header__body,
+  .report-meta-grid,
+  .summary-grid,
+  .control-grid,
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .report-header__side {
+    justify-content: flex-start;
+  }
+
+  .section-title-row {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .section-caption {
+    text-align: left;
+  }
+
+  .plan-map {
+    height: 330px;
+  }
+
+  .chart-card,
+  .chart-card--wide {
+    min-height: 0;
+  }
+
+  .chart-card canvas,
+  .chart-card--wide canvas {
+    min-height: 240px !important;
+    height: 240px !important;
+  }
+
+  th,
+  td {
+    padding: 7px 8px;
+    font-size: 10px;
   }
 }

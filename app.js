@@ -1060,7 +1060,7 @@ async function exportPdf() {
     });
 
     const pdf = new jsPDF({
-      orientation: "landscape",
+      orientation: "portrait",
       unit: "mm",
       format: "a4",
       compress: true
@@ -1068,7 +1068,7 @@ async function exportPdf() {
 
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
-    const margin = 8;
+    const margin = 10;
     const printableWidth = pageWidth - margin * 2;
     const printableHeight = pageHeight - margin * 2;
     const mmPerPixel = printableWidth / canvas.width;
