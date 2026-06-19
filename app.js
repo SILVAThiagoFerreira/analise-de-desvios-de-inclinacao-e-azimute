@@ -1,4 +1,5 @@
 const DEFAULT_DXF_PATH = "data/PP23.dxf";
+const DEFAULT_REPORT_LOGO_PATH = "assets/openblast-logo.png";
 
 const THEME = {
   accent: "#E30613",
@@ -37,6 +38,8 @@ const els = {
   blastNameInput: document.getElementById("blastNameInput"),
   dxfInput: document.getElementById("dxfInput"),
   logoInput: document.getElementById("logoInput"),
+  loadDxfBtn: document.getElementById("loadDxfBtn"),
+  loadLogoBtn: document.getElementById("loadLogoBtn"),
   reloadDefaultBtn: document.getElementById("reloadDefaultBtn"),
   exportPdfBtn: document.getElementById("exportPdfBtn"),
   reportTitle: document.getElementById("reportTitle"),
@@ -494,6 +497,10 @@ function renderSummary(rows) {
   els.analysisText.innerHTML = paragraphs;
 }
 
+function resetReportLogo() {
+  els.reportLogo.src = DEFAULT_REPORT_LOGO_PATH;
+}
+
 function renderPlanMap(rows) {
   if (!rows.length) {
     els.planMap.innerHTML = "<div class='empty-map'>Sem geometria disponível.</div>";
@@ -897,12 +904,30 @@ async function exportPdf() {
   };
 
   report.classList.add("report-sheet--exporting");
+  els.exportPdfBtn.disabled = true;
+  els.exportPdfBtn.textContent = "Gerando PDF...";
   try {
     if (document.fonts?.ready) {
       await document.fonts.ready;
     }
-    await html2pdf().set(opt).from(report).save();
+
+    await new Promise(resolve => {
+      requestAnimationFrame(() => requestAnimationFrame(resolve));
+    });
+
+    const worker = html2pdf().set(opt).from(report).toPdf();
+    const blob = await worker.outputPdf("blob");
+    const downloadUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = downloadUrl;
+    anchor.download = opt.filename;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(downloadUrl);
   } finally {
+    els.exportPdfBtn.disabled = false;
+    els.exportPdfBtn.textContent = "Exportar PDF";
     report.classList.remove("report-sheet--exporting");
   }
 }
@@ -934,6 +959,14 @@ function wireEvents() {
     reader.readAsDataURL(file);
   });
 
+  els.loadDxfBtn.addEventListener("click", () => {
+    els.dxfInput.click();
+  });
+
+  els.loadLogoBtn.addEventListener("click", () => {
+    els.logoInput.click();
+  });
+
   els.reloadDefaultBtn.addEventListener("click", () => loadDefaultDxf());
 
   [els.angleMinInput, els.angleMaxInput, els.azLimitInput, els.depthLimitInput].forEach(input => {
@@ -950,6 +983,7 @@ function wireEvents() {
 
 document.addEventListener("DOMContentLoaded", () => {
   applyLimitsFromInputs();
+  resetReportLogo();
   wireEvents();
   loadDefaultDxf();
 });
