@@ -521,7 +521,7 @@ function renderSummary(rows) {
 
   els.headerBlastName.textContent = blast;
   els.reportFireTag.textContent = `Fogo ${blast}`;
-  els.reportTitle.textContent = `Análise do fogo ${blast}`;
+  els.reportTitle.textContent = `Análise de Desvios de Inclinação e Azimute - ${blast}`;
   els.reportSubtitle.textContent = currentFileName;
   els.reportSource.textContent = "Leitura direta do DXF com comparação entre planejado, executado e limites de aderência configurados para esta análise.";
   els.reportDate.textContent = formatDateTime(state.renderedAt);
