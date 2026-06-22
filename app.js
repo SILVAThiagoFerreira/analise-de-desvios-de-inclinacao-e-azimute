@@ -1,5 +1,5 @@
 const DEFAULT_DXF_PATH = "data/PP23.dxf";
-const DEFAULT_REPORT_LOGO_PATH = "assets/openblast-logo.png";
+const DEFAULT_REPORT_LOGO_PATH = "assets/default-report-logo.png";
 
 const THEME = {
   accent: "#E30613",
@@ -580,7 +580,7 @@ function normalizeImageToDataUrl(source) {
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(image, 0, 0);
-      resolve(canvas.toDataURL("image/jpeg", 0.96));
+      resolve(canvas.toDataURL("image/png"));
     };
     image.onerror = () => reject(new Error("Falha ao normalizar o logo para exportação."));
     image.src = source;

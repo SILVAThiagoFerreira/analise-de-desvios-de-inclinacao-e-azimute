@@ -26,6 +26,7 @@ O site e o relatório saem configurados com os seguintes critérios objetivos de
   - Aderência Z
   - tendência geral de profundidade
 - Campo para inserir logo no relatório.
+- O PDF usa `assets/default-report-logo.png` como marca padrão e preserva a proporção do logo no cabeçalho.
 - Exportação do relatório em PDF pelo navegador.
 
 ## Como publicar no GitHub Pages
