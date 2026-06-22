@@ -389,10 +389,10 @@ p {
 
 .report-logo {
   display: block;
-  width: 120px;
-  height: 36px;
+  width: auto;
+  height: 44px;
+  max-width: 140px;
   object-fit: contain;
-  object-position: right center;
 }
 
 .report-logo-block {
@@ -400,14 +400,14 @@ p {
   align-items: center;
   justify-content: flex-end;
   min-width: 120px;
-  min-height: 36px;
+  min-height: 44px;
 }
 
 .report-logo-wordmark {
   display: none;
   align-items: center;
   justify-content: center;
-  min-height: 36px;
+  min-height: 44px;
   padding: 0 10px;
   border: 1px solid var(--border-strong);
   color: var(--accent);
