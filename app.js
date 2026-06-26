@@ -45,8 +45,8 @@ const state = {
   limits: {
     angleMin: 12,
     angleMax: 18,
-    azimuth: 5,
-    depth: 0.25,
+    azimuth: 6.39,
+    depth: 0.20,
     meta: 80
   }
 };
