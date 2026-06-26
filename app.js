@@ -43,8 +43,8 @@ const state = {
   blastName: "PP23",
   renderedAt: new Date(),
   limits: {
-    angleMin: 12,
-    angleMax: 18,
+    angleMin: 11.8,
+    angleMax: 18.2,
     azimuth: 6.39,
     depth: 0.20,
     meta: 80
