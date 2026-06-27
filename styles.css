@@ -1,14 +1,17 @@
 :root {
-  --bg: #f7f7f7;
+  --bg: #ffffff;
   --surface: #ffffff;
-  --surface-soft: #fbfbfb;
-  --text-strong: #111111;
-  --text-body: #333333;
-  --text-muted: #6b7280;
-  --border: #e5e7eb;
-  --border-strong: #d1d5db;
-  --accent: #e30613;
-  --accent-dark: #9d0b0e;
+  --surface-soft: #F5F6F7;
+  --surface-quiet: #F5F6F7;
+  --text-strong: #38424B;
+  --text-body: #38424B;
+  --text-muted: #6C7680;
+  --text-muted-strong: #8B949E;
+  --border: #E3E6EA;
+  --border-strong: #D2D6DB;
+  --accent: #E20613;
+  --accent-dark: #B00410;
+  --online: #22C55E;
   --radius-lg: 0px;
   --radius-md: 0px;
   --font: Inter, Arial, Helvetica, system-ui, sans-serif;
@@ -22,13 +25,18 @@ html,
 body {
   margin: 0;
   min-height: 100%;
-  background: #fafafa;
+  background: var(--bg);
   color: var(--text-body);
   font-family: var(--font);
 }
 
 body {
   line-height: 1.5;
+}
+
+:focus-visible {
+  outline: 2px solid rgba(226, 6, 19, 0.5);
+  outline-offset: 1px;
 }
 
 button,
@@ -183,7 +191,7 @@ p {
 }
 
 .btn:hover {
-  background: #f3f4f6;
+  background: var(--surface-quiet);
 }
 
 .btn-primary {
@@ -266,8 +274,8 @@ p {
 
 .field input:focus {
   outline: none;
-  border-color: rgba(227, 6, 19, 0.55);
-  box-shadow: 0 0 0 3px rgba(227, 6, 19, 0.08);
+  border-color: rgba(226, 6, 19, 0.5);
+  box-shadow: 0 0 0 3px rgba(226, 6, 19, 0.08);
 }
 
 .field input[type="file"] {
@@ -484,7 +492,7 @@ p {
 }
 
 .metric-card--ok {
-  border-left-color: #9ca3af;
+  border-left-color: var(--border-strong);
 }
 
 .metric-label {
@@ -721,7 +729,7 @@ td {
 }
 
 th {
-  background: #f3f4f6;
+  background: var(--surface-quiet);
   color: var(--text-muted);
   font-size: 11px;
   font-weight: 700;
@@ -735,7 +743,7 @@ tr:last-child td {
 }
 
 tbody tr:nth-child(even) {
-  background: #fcfcfc;
+  background: var(--surface-quiet);
 }
 
 .page-break-avoid {

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Análise de Desvios de Inclinação e Azimute</title>
-  <meta name="description" content="Relatório técnico estático para análise de desvios de inclinação, azimute e profundidade a partir de DXF." />
+  <meta name="description" content="Análise de desvios de inclinação, azimute e profundidade a partir de DXF." />
   <link rel="stylesheet" href="styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -15,14 +15,13 @@
   <main class="app-shell">
     <header class="site-header no-print">
       <div class="site-header__topline">
-        <p class="site-kicker">Relatório técnico</p>
         <img src="assets/openblast-logo.png" alt="OpenBlast" class="brand-logo" />
       </div>
 
       <div class="site-header__body">
         <div class="site-header__copy">
           <h1>Análise de Desvios de Inclinação e Azimute</h1>
-          <p class="site-subtitle">Leitura direta do DXF, comparação entre planejado, executado e limites de aderência.</p>
+          <p class="site-subtitle">Comparação entre planejado, executado e limites de aderência.</p>
         </div>
 
         <div class="site-header__meta">
@@ -46,7 +45,7 @@
           <p class="section-kicker">Parâmetros</p>
           <h2>Entrada e limites de referência</h2>
         </div>
-        <p class="parameter-panel__text">Parâmetros objetivos padrão: ângulo 15° com tolerância de ±3,2° (faixa de 11,8° a 18,2°), azimute 0° com tolerância de ±6,39°, profundidade 0,00 m com tolerância de ±0,20 m e meta mínima de aderência de 80%.</p>
+        <p class="parameter-panel__text">Ângulo 15° (±3,2°), azimute 0° (±6,39°), profundidade 0,00 m (±0,20 m) e meta mínima de aderência de 80%.</p>
       </div>
 
       <div class="parameter-grid">
@@ -106,7 +105,7 @@
         <div class="report-header__body">
           <div class="report-header__main">
             <h2 id="reportTitle">Análise de Desvios de Inclinação e Azimute - PP23</h2>
-            <p class="report-intro">Leitura direta do DXF, comparação entre planejado, executado e limites de aderência.</p>
+            <p class="report-intro">Comparação entre planejado, executado e limites de aderência.</p>
           </div>
 
           <div class="report-header__side">
@@ -201,7 +200,7 @@
           <div>
             <p class="section-kicker">Geometria</p>
             <h3>Mapa de execução</h3>
-            <p class="section-note">Planejado em cinza escuro, executado em vermelho institucional e emboques com marcação discreta.</p>
+            <p class="section-note">Planejado em cinza, executado em vermelho e emboques marcados.</p>
           </div>
         </div>
         <div id="planMap" class="plan-map"></div>
@@ -244,7 +243,7 @@
           <div>
             <p class="section-kicker">Base calculada</p>
             <h3>Tabela de conferência</h3>
-            <p class="section-note">Base completa dos furos processados a partir do DXF para conferência técnica.</p>
+            <p class="section-note">Base completa dos furos processados a partir do DXF.</p>
           </div>
         </div>
         <div class="table-wrap">

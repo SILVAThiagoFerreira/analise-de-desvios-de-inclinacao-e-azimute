@@ -2,17 +2,17 @@ const DEFAULT_DXF_PATH = "data/PP23.dxf";
 const DEFAULT_REPORT_LOGO_PATH = "assets/default-report-logo.png";
 
 const THEME = {
-  accent: "#E30613",
-  accentDark: "#9D0B0E",
-  textStrong: "#111111",
-  textBody: "#333333",
-  textMuted: "#6B7280",
-  border: "#E5E7EB",
-  borderStrong: "#D1D5DB",
+  accent: "#E20613",
+  accentDark: "#B00410",
+  textStrong: "#38424B",
+  textBody: "#38424B",
+  textMuted: "#6C7680",
+  border: "#E3E6EA",
+  borderStrong: "#D2D6DB",
   grid: "#ECEFF3",
   planned: "#2F3640",
   surface: "#FFFFFF",
-  soft: "#F7F7F7"
+  soft: "#F5F6F7"
 };
 
 const CHART_LIMITS = {
@@ -523,7 +523,7 @@ function renderSummary(rows) {
   els.reportFireTag.textContent = `Fogo ${blast}`;
   els.reportTitle.textContent = `Análise de Desvios de Inclinação e Azimute - ${blast}`;
   els.reportSubtitle.textContent = currentFileName;
-  els.reportSource.textContent = "Leitura direta do DXF com comparação entre planejado, executado e limites de aderência configurados para esta análise.";
+  els.reportSource.textContent = "Leitura direta do DXF com comparação entre planejado, executado e limites de aderência.";
   els.reportDate.textContent = formatDateTime(state.renderedAt);
 
   els.metricHoles.textContent = metrics.total.toLocaleString("pt-BR");
