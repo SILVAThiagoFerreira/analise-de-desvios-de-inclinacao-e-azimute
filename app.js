@@ -1257,7 +1257,9 @@ function buildExcelWorkbook(rows) {
   const paramSheet = XLSX.utils.aoa_to_sheet(paramSheetData);
   paramSheet["!cols"] = [{ wch: 34 }, { wch: 22 }];
 
+  const blastName = state.blastName || "";
   const header = [
+    "Plano",
     "ID",
     "Ângulo frontal (°)",
     "Azimute planejado (°)",
@@ -1286,6 +1288,7 @@ function buildExcelWorkbook(rows) {
       && Math.abs(row.depthDelta) <= depthLimit;
 
     return [
+      blastName,
       row.id,
       roundOrNull(row.frontalAngle, 2),
       roundOrNull(row.plannedAzimuth, 2),
