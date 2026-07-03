@@ -60,6 +60,7 @@ const els = {
   loadLogoBtn: document.getElementById("loadLogoBtn"),
   reloadDefaultBtn: document.getElementById("reloadDefaultBtn"),
   exportPdfBtn: document.getElementById("exportPdfBtn"),
+  exportExcelBtn: document.getElementById("exportExcelBtn"),
   reportTitle: document.getElementById("reportTitle"),
   reportSubtitle: document.getElementById("reportSubtitle"),
   reportSource: document.getElementById("reportSource"),
@@ -1213,6 +1214,129 @@ async function exportPdf() {
   }
 }
 
+function roundOrNull(value, digits = 2) {
+  if (!Number.isFinite(value)) return null;
+  const factor = 10 ** digits;
+  return Math.round(value * factor) / factor;
+}
+
+function buildExcelWorkbook(rows) {
+  if (typeof window.XLSX === "undefined") {
+    throw new Error("Biblioteca XLSX não disponível.");
+  }
+  const XLSX = window.XLSX;
+  const metrics = calculateMetrics(rows);
+  const limits = state.limits;
+  const generatedAt = formatDateTime(new Date());
+
+  const paramSheetData = [
+    ["Análise de Desvios de Inclinação e Azimute"],
+    [],
+    ["Fogo analisado", state.blastName || ""],
+    ["Arquivo de origem", currentFileName || ""],
+    ["Data de geração", generatedAt],
+    [],
+    ["Parâmetro", "Valor"],
+    ["Ângulo mínimo (°)", roundOrNull(limits.angleMin, 2)],
+    ["Ângulo máximo (°)", roundOrNull(limits.angleMax, 2)],
+    ["Limite de azimute (°)", roundOrNull(limits.azimuth, 2)],
+    ["Limite de profundidade (m)", roundOrNull(limits.depth, 2)],
+    ["Meta de aderência (%)", roundOrNull(limits.meta, 2)],
+    [],
+    ["Indicador", "Valor"],
+    ["Furos analisados", metrics.total],
+    ["Furos com direção comparável", metrics.azComparable],
+    ["Aderência de ângulo (%)", roundOrNull(metrics.anglePct, 2)],
+    ["Aderência de azimute (%)", roundOrNull(metrics.azPct, 2)],
+    ["Aderência de Z (%)", roundOrNull(metrics.depthPct, 2)],
+    ["Furos dentro do limite de ângulo", metrics.angleOk],
+    ["Furos dentro do limite de azimute", metrics.azOk],
+    ["Furos dentro do limite de Z", metrics.depthOk],
+    ["Δ profundidade médio (m)", roundOrNull(metrics.avgDepthDelta, 2)]
+  ];
+  const paramSheet = XLSX.utils.aoa_to_sheet(paramSheetData);
+  paramSheet["!cols"] = [{ wch: 34 }, { wch: 22 }];
+
+  const header = [
+    "ID",
+    "Ângulo frontal (°)",
+    "Azimute planejado (°)",
+    "Azimute executado (°)",
+    "Δ Azimute (°)",
+    "Profundidade planejada (m)",
+    "Profundidade executada (m)",
+    "Δ Profundidade (m)",
+    "Ângulo dentro do limite",
+    "Azimute dentro do limite",
+    "Z dentro do limite"
+  ];
+
+  const angleMin = limits.angleMin;
+  const angleMax = limits.angleMax;
+  const azLimit = limits.azimuth;
+  const depthLimit = limits.depth;
+
+  const body = rows.map(row => {
+    const angleOk = Number.isFinite(row.frontalAngle)
+      && row.frontalAngle >= angleMin
+      && row.frontalAngle <= angleMax;
+    const azOk = Number.isFinite(row.azimuthDelta)
+      && Math.abs(row.azimuthDelta) <= azLimit;
+    const depthOk = Number.isFinite(row.depthDelta)
+      && Math.abs(row.depthDelta) <= depthLimit;
+
+    return [
+      row.id,
+      roundOrNull(row.frontalAngle, 2),
+      roundOrNull(row.plannedAzimuth, 2),
+      roundOrNull(row.executedAzimuth, 2),
+      roundOrNull(row.azimuthDelta, 2),
+      roundOrNull(row.plannedLength, 2),
+      roundOrNull(row.executedLength, 2),
+      roundOrNull(row.depthDelta, 2),
+      Number.isFinite(row.frontalAngle) ? (angleOk ? "Sim" : "Não") : "N/A",
+      Number.isFinite(row.azimuthDelta) ? (azOk ? "Sim" : "Não") : "N/A",
+      Number.isFinite(row.depthDelta) ? (depthOk ? "Sim" : "Não") : "N/A"
+    ];
+  });
+
+  const baseSheet = XLSX.utils.aoa_to_sheet([header, ...body]);
+  baseSheet["!cols"] = header.map(col => ({ wch: Math.max(col.length + 2, 14) }));
+  baseSheet["!autofilter"] = { ref: XLSX.utils.encode_range({
+    s: { r: 0, c: 0 },
+    e: { r: body.length, c: header.length - 1 }
+  }) };
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, paramSheet, "Resumo");
+  XLSX.utils.book_append_sheet(workbook, baseSheet, "Base calculada");
+  return workbook;
+}
+
+function exportExcel() {
+  if (typeof window.XLSX === "undefined") {
+    window.alert("Biblioteca de exportação Excel não carregada.");
+    return;
+  }
+  if (!currentRows.length) {
+    window.alert("Nenhum dado disponível para exportar. Carregue um DXF válido antes.");
+    return;
+  }
+
+  const blast = (state.blastName || "fogo").replace(/[^\w\-]+/g, "_").toLowerCase();
+  const filename = `analise-desvios-${blast}.xlsx`;
+  els.exportExcelBtn.disabled = true;
+  const originalLabel = els.exportExcelBtn.textContent;
+  els.exportExcelBtn.textContent = "Gerando Excel...";
+  try {
+    const workbook = buildExcelWorkbook(currentRows);
+    window.XLSX.writeFile(workbook, filename);
+  } finally {
+    els.exportExcelBtn.disabled = false;
+    els.exportExcelBtn.textContent = originalLabel;
+  }
+}
+
 function wireEvents() {
   els.blastNameInput.addEventListener("input", event => {
     state.blastName = event.target.value.trim() || "Fogo";
@@ -1266,6 +1390,15 @@ function wireEvents() {
       console.error(error);
       window.alert("Não foi possível gerar o PDF automaticamente nesta tentativa.");
     });
+  });
+
+  els.exportExcelBtn.addEventListener("click", () => {
+    try {
+      exportExcel();
+    } catch (error) {
+      console.error(error);
+      window.alert("Não foi possível gerar o Excel: " + (error?.message || error));
+    }
   });
 }
 
