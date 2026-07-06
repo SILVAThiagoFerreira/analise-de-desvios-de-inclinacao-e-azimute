@@ -127,8 +127,8 @@ p {
 }
 
 .brand-logo {
-  width: 72px;
-  height: 28px;
+  width: 48px;
+  height: 22px;
   object-fit: contain;
 }
 
@@ -398,8 +398,8 @@ p {
 .report-logo {
   display: block;
   width: auto;
-  height: 44px;
-  max-width: 140px;
+  height: 30px;
+  max-width: 96px;
   object-fit: contain;
 }
 
@@ -407,15 +407,15 @@ p {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  min-width: 120px;
-  min-height: 44px;
+  min-width: 96px;
+  min-height: 34px;
 }
 
 .report-logo-wordmark {
   display: none;
   align-items: center;
   justify-content: center;
-  min-height: 44px;
+  min-height: 34px;
   padding: 0 10px;
   border: 1px solid var(--border-strong);
   color: var(--accent);
@@ -797,6 +797,11 @@ tbody tr:nth-child(even) {
   .app-shell {
     width: min(100vw - 24px, 1360px);
     margin: 12px auto 28px;
+  }
+
+  .brand-logo {
+    width: 32px;
+    height: 18px;
   }
 
   .site-header,
