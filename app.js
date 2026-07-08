@@ -1163,7 +1163,6 @@ async function exportReportBySections(report, scale) {
     report.querySelector(".summary-grid"),
     report.querySelector(".control-card"),
     report.querySelector(".analysis-card"),
-    report.querySelector(".map-card"),
     ...Array.from(report.querySelectorAll(".charts-grid .chart-card")),
     report.querySelector(".data-table-card")
   ].filter(Boolean);
