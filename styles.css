@@ -17,6 +17,11 @@
   --font: Inter, Arial, Helvetica, system-ui, sans-serif;
 }
 
+/* OpenBlast shared header treatment */
+.site-header { border-top: 3px solid #ed1c24 !important; background: #fff !important; box-shadow: 0 1px 0 #e9ecef !important; }
+.site-header__topline { min-height: 58px; }
+.brand-logo { width: 112px !important; max-height: 38px; object-fit: contain; }
+
 * {
   box-sizing: border-box;
 }
