@@ -1,20 +1,66 @@
-# Desvios de Perfuração — Inclinação, Azimute e Profundidade
+# OpenBlast — Análise de Desvios de Inclinação, Azimute e Profundidade
 
-Dashboard estático (HTML/CSS/JS) que consome em tempo real a planilha Google Sheets
-consolidada de furos perfurados e apresenta a aderência ao projeto conforme os
-**parâmetros atuais do sistema**:
+Ferramenta estática para importar um DXF de execução de furos, comparar o planejado com o executado e gerar um relatório técnico em PDF e Excel.
 
-| Parâmetro          | Valor                                           |
-| ------------------ | ----------------------------------------------- |
-| Ângulo frontal     | 15° ± 3,2° (faixa 11,8° a 18,2°)                |
-| Δ Azimute          | 0° ± 6,39°                                      |
-| Δ Profundidade (Z) | 0,00 m ± 0,20 m (20 cm)                         |
-| Meta de aderência  | mínimo 80% dos furos                            |
+O projeto já vem com o arquivo `data/PP23.dxf` carregado como base padrão e pode rodar diretamente no GitHub Pages.
 
-## Publicação
-- Deploy via GitHub Pages (branch `main`, raiz).
-- Sem backend: os dados são lidos direto do Google Sheets via `gviz` (fallback CSV) a cada acesso.
+## Parâmetros objetivos padrão
 
-## Fonte
-Planilha pública US Vale Verde:
-`https://docs.google.com/spreadsheets/d/1ef7edY0Yye6arldVfOUYDcjI4GvY6g5U/`
+O site e o relatório saem configurados com os seguintes critérios objetivos de controle:
+
+- Ângulo frontal: valor esperado `15°`, com limites de `11,8°` a `18,2°` e tolerância de `±3,2°`.
+- Azimute: valor esperado `0°` de desvio, com limites de `-6,39°` a `+6,39°` e tolerância de `±6,39°`.
+- Profundidade / Z: valor esperado `0,00 m` de desvio, com limites de `-0,20 m` a `+0,20 m` e tolerância de `±0,20 m`.
+- Meta de aderência: mínimo de `80%` dos furos dentro dos limites definidos.
+
+## O que o site entrega
+
+- Campo para informar o nome do fogo analisado.
+- Leitura do DXF com camadas `Hole`, `Theoretical Hole`, `Real Hole`, `Number` e `Length`.
+- Gráfico de ângulo frontal com limites de controle.
+- Gráfico de direção dos furos, com Δ Azimute e Δ Profundidade.
+- Mapa em planta com planejado em azul, executado em vermelho e emboques.
+- Resumo objetivo no padrão:
+  - Aderência de Ângulo
+  - Aderência Azimute
+  - Aderência Z
+  - tendência geral de profundidade
+- Campo para inserir logo no relatório.
+- O PDF usa `assets/default-report-logo.png` com o badge OpenBlast padrão e preserva a proporção do logo no cabeçalho.
+- Exportação do relatório em PDF pelo navegador.
+- Exportação da base calculada, resumo e parâmetros em Excel pelo navegador.
+
+## Como publicar no GitHub Pages
+
+O pacote inclui workflow em `.github/workflows/deploy-pages.yml` para publicar automaticamente o conteúdo da raiz no GitHub Pages a cada push na branch `main`.
+
+1. Crie ou conecte um repositório GitHub com este diretório.
+2. Faça push da branch `main`.
+3. No GitHub, acesse **Settings > Pages**.
+4. Em **Build and deployment**, selecione `GitHub Actions`.
+5. Aguarde a conclusão do workflow `Deploy static site to GitHub Pages`.
+
+## Comandos sugeridos
+
+```bash
+git init
+git add .
+git commit -m "Publica site de analise de desvios OpenBlast"
+git branch -M main
+git remote add origin https://github.com/SEU_USUARIO/NOME_DO_REPOSITORIO.git
+git push -u origin main
+```
+
+Depois, confirme em **Settings > Pages** que a origem está definida como `GitHub Actions`.
+
+## Observação técnica
+
+A análise é feita no navegador. Não existe backend, banco de dados, planilha externa ou dependência do Hub de Dashboards. Os cálculos são gerados a partir das geometrias do DXF:
+
+- comprimento planejado: linha `Theoretical Hole`;
+- comprimento executado: polilinha `Real Hole`;
+- ângulo frontal: inclinação da corda executada em relação à vertical;
+- Δ Azimute: diferença angular entre direção teórica e direção executada em planta;
+- Δ Profundidade: comprimento executado menos comprimento planejado.
+
+Se o furo teórico estiver vertical ou sem deslocamento em planta suficiente, o site não força comparação de azimute para aquele furo.

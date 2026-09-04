@@ -1,202 +1,277 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Inclinação, Azimute e Profundidade · US Vale Verde</title>
-  <link rel="icon" type="image/png" href="./assets/enaex-favicon.png">
-  <meta name="description" content="Análise de desvios de inclinação, azimute e profundidade dos furos de perfuração — US Vale Verde.">
-  <link rel="preconnect" href="https://docs.google.com">
-  <link rel="stylesheet" href="./styles.css?v=5">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Análise de Desvios de Inclinação e Azimute</title>
+  <meta name="description" content="Análise de desvios de inclinação, azimute e profundidade a partir de DXF." />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="assets/openblast-favicon-white.svg" type="image/svg+xml" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
-  <header class="topbar">
-    <img class="topbar__logo" src="./assets/enaex-logo-white.png" alt="ENAEX">
-    <span class="topbar__title">Desvios de Perfuração</span>
-    <span class="topbar__unit">US VALE VERDE</span>
-  </header>
-
-  <main class="page">
-    <section class="page-head">
-      <div class="page-head__title">
-        <p class="eyebrow">ANÁLISE DE DESVIOS · INCLINAÇÃO · AZIMUTE · PROFUNDIDADE</p>
-        <h1>Aderência da Perfuração ao Projeto</h1>
+  <main class="app-shell">
+    <header class="openblast-hubbar no-print">
+      <div class="openblast-hubbar__brand"><img src="assets/openblast-logo.png" alt="OpenBlast" /><span>Open<strong>Blast</strong></span></div>
+      <span class="openblast-hubbar__title">Análise de Desvios</span>
+    </header>
+    <header class="site-header no-print">
+      <div class="site-header__topline">
+        <img src="assets/openblast-logo.png" alt="OpenBlast" class="brand-logo" />
       </div>
-      <div class="filters">
-        <label class="filter">
-          <span>ANO</span>
-          <select id="filter-year"></select>
-        </label>
-        <label class="filter">
-          <span>MÊS</span>
-          <select id="filter-month"></select>
-        </label>
-        <label class="filter filter--wide">
-          <span>PLANO</span>
-          <select id="filter-plan"></select>
-        </label>
-        <button id="filter-reset" type="button" class="filter-reset">Limpar</button>
-        <button id="export-xlsx" type="button" class="filter-reset" title="Exportar dados filtrados para Excel">⤓ Excel</button>
-      </div>
-    </section>
 
-    <p class="status" id="status" aria-live="polite">
-      <span class="status__dot" id="status-dot"></span>
-      <span id="status-text">Carregando…</span>
-      <span class="status__spacer"></span>
-      <span class="status__time" id="last-update"></span>
-    </p>
-
-    <div class="active-filters" id="active-filters" style="display:none"></div>
-
-    <section class="control-panel" aria-label="Parâmetros de controle">
-      <p class="control-panel__title">Parâmetros objetivos de controle</p>
-      <div class="control-panel__grid">
-        <div class="control">
-          <p class="control__k">Ângulo frontal</p>
-          <p class="control__v">15,00°</p>
-          <p class="control__s">Faixa 11,8° a 18,2° · tolerância ±3,2°</p>
+      <div class="site-header__body">
+        <div class="site-header__copy">
+          <h1>Análise de Desvios de Inclinação e Azimute</h1>
+          <p class="site-subtitle">Comparação entre planejado, executado e limites de aderência.</p>
         </div>
-        <div class="control">
-          <p class="control__k">Δ Azimute</p>
-          <p class="control__v">0,00°</p>
-          <p class="control__s">Limites −6,39° a +6,39° · tolerância ±6,39°</p>
-        </div>
-        <div class="control">
-          <p class="control__k">Δ Profundidade (Z)</p>
-          <p class="control__v">0,00 m</p>
-          <p class="control__s">Limites −0,20 m a +0,20 m · tolerância ±0,20 m (20 cm)</p>
-        </div>
-        <div class="control">
-          <p class="control__k">Meta de aderência</p>
-          <p class="control__v">80,0%</p>
-          <p class="control__s">Mínimo de furos dentro dos limites</p>
-        </div>
-      </div>
-    </section>
 
-    <section class="kpis" id="kpis">
-      <div class="kpi">
-        <p class="kpi__label">FUROS ANALISADOS</p>
-        <p class="kpi__value" id="kpi-count">—</p>
-        <p class="kpi__sub" id="kpi-count-hint">&nbsp;</p>
-      </div>
-      <div class="kpi" id="kpi-angle-card">
-        <p class="kpi__label">ADERÊNCIA ÂNGULO</p>
-        <p class="kpi__value" id="kpi-angle">—</p>
-        <p class="kpi__sub" id="kpi-angle-hint">Dentro de 11,8° – 18,2°</p>
-      </div>
-      <div class="kpi" id="kpi-az-card">
-        <p class="kpi__label">ADERÊNCIA AZIMUTE</p>
-        <p class="kpi__value" id="kpi-az">—</p>
-        <p class="kpi__sub" id="kpi-az-hint">|ΔAz| ≤ 6,39°</p>
-      </div>
-      <div class="kpi" id="kpi-z-card">
-        <p class="kpi__label">ADERÊNCIA Z</p>
-        <p class="kpi__value" id="kpi-z">—</p>
-        <p class="kpi__sub" id="kpi-z-hint">|ΔProf| ≤ 0,20 m</p>
-      </div>
-    </section>
-
-    <section class="chart-stack">
-      <div class="chart-block" id="map-card">
-        <div class="chart-block__head">
-          <p class="chart-block__eyebrow">GEOMETRIA</p>
-          <h2>Mapa de execução</h2>
-          <p id="map-subtitle">Planejado em cinza, executado em vermelho e emboques marcados.</p>
-        </div>
-        <div class="chart-block__body chart-block__body--map">
-          <div id="map-legend" class="map-legend">
-            <span class="map-legend__item"><span class="map-legend__swatch map-legend__swatch--planned"></span>Planejado</span>
-            <span class="map-legend__item"><span class="map-legend__swatch map-legend__swatch--real"></span>Executado</span>
-            <span class="map-legend__item"><span class="map-legend__swatch map-legend__swatch--collar"></span>Emboque</span>
+        <div class="site-header__meta">
+          <div class="header-meta-card">
+            <span class="header-meta-card__label">Fogo analisado</span>
+            <strong id="headerBlastName" class="header-meta-card__value">PP23</strong>
           </div>
-          <div id="map-status" class="map-status" aria-live="polite"></div>
-          <svg id="chart-map" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="action-group">
+            <button id="exportPdfBtn" class="btn btn-primary" type="button">Exportar PDF</button>
+            <button id="exportExcelBtn" class="btn btn-secondary" type="button">Exportar Excel</button>
+            <button id="loadDxfBtn" class="btn btn-secondary" type="button">Carregar DXF</button>
+            <button id="loadLogoBtn" class="btn btn-secondary" type="button">Inserir logo</button>
+            <button id="reloadDefaultBtn" class="btn btn-tertiary" type="button">Recarregar padrão</button>
+          </div>
         </div>
       </div>
+    </header>
 
-      <div class="chart-block">
-        <div class="chart-block__head">
-          <h2>Ângulo frontal por furo</h2>
-          <p>Inclinação executada de cada furo em relação à vertical · linhas: limites 11,8° e 18,2°</p>
+    <section class="parameter-panel no-print">
+      <div class="parameter-panel__header">
+        <div>
+          <p class="section-kicker">Parâmetros</p>
+          <h2>Entrada e limites de referência</h2>
         </div>
-        <div class="chart-block__body chart-block__body--tall"><canvas id="chart-angle"></canvas></div>
+        <p class="parameter-panel__text">Ângulo 15° (±3,2°), azimute 0° (±6,39°), profundidade 0,00 m (±0,20 m) e meta mínima de aderência de 80%.</p>
       </div>
 
-      <div class="chart-block">
-        <div class="chart-block__head">
-          <h2>Direção dos furos — Δ Azimute × Δ Profundidade</h2>
-          <p>Cada ponto é um furo · retângulo interno = zona de aderência (±6,39° e ±0,20 m)</p>
+      <div class="parameter-grid">
+        <div class="field">
+          <label for="blastNameInput">Nome do fogo analisado</label>
+          <input id="blastNameInput" type="text" value="PP23" placeholder="Ex.: PC020, PP020, PP23" />
         </div>
-        <div class="chart-block__body chart-block__body--vf"><canvas id="chart-direction"></canvas></div>
-      </div>
 
-      <div class="chart-row">
-        <div class="chart-block chart-block--half">
-          <div class="chart-block__head">
-            <h2>Δ Azimute por furo</h2>
-            <p>Desvio angular em planta (executado − planejado)</p>
-          </div>
-          <div class="chart-block__body chart-block__body--tall"><canvas id="chart-az"></canvas></div>
+        <div class="field">
+          <label for="dxfInput">DXF da análise</label>
+          <input id="dxfInput" type="file" accept=".dxf" />
+          <span class="hint">O DXF padrão do pacote é carregado automaticamente na abertura da página.</span>
         </div>
-        <div class="chart-block chart-block--half">
-          <div class="chart-block__head">
-            <h2>Δ Profundidade por furo</h2>
-            <p>Executado − planejado (m)</p>
-          </div>
-          <div class="chart-block__body chart-block__body--tall"><canvas id="chart-depth"></canvas></div>
-        </div>
-      </div>
 
-      <div class="chart-row">
-        <div class="chart-block chart-block--half">
-          <div class="chart-block__head">
-            <h2>Aderência por Plano</h2>
-            <p>% de furos dentro dos limites — ângulo, azimute e Z</p>
-          </div>
-          <div class="chart-block__body chart-block__body--tall"><canvas id="chart-by-plan"></canvas></div>
+        <div class="field">
+          <label for="logoInput">Logo do relatório</label>
+          <input id="logoInput" type="file" accept="image/*" />
+          <span class="hint">Se nenhum arquivo for enviado, o relatório utiliza o logo padrão embutido no pacote.</span>
         </div>
-        <div class="chart-block chart-block--half">
-          <div class="chart-block__head">
-            <h2>Distribuição de Δ Azimute</h2>
-            <p>Histograma dos desvios angulares em planta</p>
-          </div>
-          <div class="chart-block__body chart-block__body--tall"><canvas id="chart-hist-az"></canvas></div>
-        </div>
-      </div>
 
-      <div class="chart-row">
-        <div class="chart-block chart-block--half">
-          <div class="chart-block__head">
-            <h2>Distribuição de Δ Profundidade</h2>
-            <p>Histograma dos desvios de profundidade (m)</p>
+        <div class="field field--inline">
+          <label for="angleMinInput">Limite de ângulo</label>
+          <div class="inline-inputs">
+            <div class="inline-field">
+              <span>Mín.</span>
+              <input id="angleMinInput" type="number" step="0.01" value="11.8" />
+            </div>
+            <div class="inline-field">
+              <span>Máx.</span>
+              <input id="angleMaxInput" type="number" step="0.01" value="18.2" />
+            </div>
           </div>
-          <div class="chart-block__body chart-block__body--tall"><canvas id="chart-hist-depth"></canvas></div>
         </div>
-        <div class="chart-block chart-block--half">
-          <div class="chart-block__head">
-            <h2>Distribuição do Ângulo frontal</h2>
-            <p>Histograma da inclinação executada (°)</p>
-          </div>
-          <div class="chart-block__body chart-block__body--tall"><canvas id="chart-hist-angle"></canvas></div>
+
+        <div class="field">
+          <label for="azLimitInput">Limite de azimute</label>
+          <input id="azLimitInput" type="number" step="0.01" value="6.39" />
+        </div>
+
+        <div class="field">
+          <label for="depthLimitInput">Limite de profundidade</label>
+          <input id="depthLimitInput" type="number" step="0.01" value="0.20" />
         </div>
       </div>
     </section>
 
-    <p class="source-note">
-      <strong>Fonte:</strong> planilha consolidada de furos perfurados da US Vale Verde, lida em tempo real.
-      <strong>Base de cálculo:</strong> ângulo frontal = inclinação executada em relação à vertical; Δ Azimute = azimute executado − azimute planejado; Δ Profundidade = profundidade executada − planejada.
-      <strong>Parâmetros atuais do sistema:</strong>
-      ângulo frontal 15° ± 3,2° (faixa 11,8° a 18,2°), Δ Azimute 0° ± 6,39°, Δ Profundidade 0,00 m ± 0,20 m (20 cm), meta de aderência 80%.
-      Furos sem base geométrica em planta são desconsiderados apenas para o cálculo direcional.
-    </p>
+    <section id="report" class="report-sheet">
+      <header class="report-header page-break-avoid">
+        <div class="report-header__topline">
+          <span class="report-kicker">Relatório técnico</span>
+          <div id="reportLogoBlock" class="report-logo-block">
+            <img id="reportLogo" class="report-logo" src="assets/default-report-logo.png" alt="Logo do relatório" />
+            <div id="reportLogoWordmark" class="report-logo-wordmark" aria-hidden="true">OPENBLAST</div>
+          </div>
+        </div>
+
+        <div class="report-header__body">
+          <div class="report-header__main">
+            <h2 id="reportTitle">Análise de Desvios de Inclinação e Azimute - PP23</h2>
+            <p class="report-intro">Comparação entre planejado, executado e limites de aderência.</p>
+          </div>
+
+          <div class="report-header__side">
+            <div id="reportFireTag" class="report-fire-tag">Fogo PP23</div>
+          </div>
+        </div>
+
+        <div class="report-meta-grid">
+          <div class="report-meta-item">
+            <span class="report-meta-item__label">Data de geração</span>
+            <strong id="reportDate" class="report-meta-item__value">--</strong>
+          </div>
+          <div class="report-meta-item">
+            <span class="report-meta-item__label">Arquivo de origem</span>
+            <strong id="reportSubtitle" class="report-meta-item__value">PP23.dxf</strong>
+          </div>
+          <div class="report-meta-item report-meta-item--wide">
+            <span class="report-meta-item__label">Contexto</span>
+            <strong id="reportSource" class="report-meta-item__value">Fonte: DXF padrão do pacote</strong>
+          </div>
+        </div>
+      </header>
+
+      <section class="summary-grid page-break-avoid">
+        <article class="metric-card" id="metricHolesCard">
+          <span class="metric-label">Furos analisados</span>
+          <strong id="metricHoles">0</strong>
+          <small id="metricComparable">0 com direção comparável em planta</small>
+        </article>
+        <article class="metric-card" id="metricAngleCard">
+          <span class="metric-label">Aderência de Ângulo</span>
+          <strong id="metricAngle">0,00%</strong>
+          <small id="metricAngleMeta">Meta = 80%</small>
+        </article>
+        <article class="metric-card" id="metricAzimuthCard">
+          <span class="metric-label">Aderência Azimute</span>
+          <strong id="metricAzimuth">0,00%</strong>
+          <small id="metricAzimuthMeta">Meta = 80%</small>
+        </article>
+        <article class="metric-card" id="metricDepthCard">
+          <span class="metric-label">Aderência Z</span>
+          <strong id="metricDepth">0,00%</strong>
+          <small id="metricDepthMeta">Meta = 80%</small>
+        </article>
+      </section>
+
+      <section class="control-card page-break-avoid">
+        <div class="section-title-row">
+          <div>
+            <p class="section-kicker">Controle</p>
+            <h3>Parâmetros objetivos de controle</h3>
+          </div>
+          <p class="section-caption">Critério mínimo de aderência: <strong id="controlMetaText">80%</strong> dos furos dentro dos limites definidos.</p>
+        </div>
+
+        <div class="control-grid">
+          <article class="control-item">
+            <span class="control-item__title">Ângulo frontal</span>
+            <strong id="controlAngleExpected" class="control-item__value">15,00°</strong>
+            <small id="controlAngleLimits" class="control-item__detail">Limites: 12,00° a 18,00°</small>
+            <small id="controlAngleTolerance" class="control-item__detail">Tolerância: ±3,00°</small>
+          </article>
+          <article class="control-item">
+            <span class="control-item__title">Azimute / Direção dos furos</span>
+            <strong id="controlAzimuthExpected" class="control-item__value">0,00°</strong>
+            <small id="controlAzimuthLimits" class="control-item__detail">Limites: -5,00° a +5,00°</small>
+            <small id="controlAzimuthTolerance" class="control-item__detail">Tolerância: ±5,00°</small>
+          </article>
+          <article class="control-item">
+            <span class="control-item__title">Profundidade / Z</span>
+            <strong id="controlDepthExpected" class="control-item__value">0,00 m</strong>
+            <small id="controlDepthLimits" class="control-item__detail">Limites: -0,25 m a +0,25 m</small>
+            <small id="controlDepthTolerance" class="control-item__detail">Tolerância: ±0,25 m</small>
+          </article>
+        </div>
+      </section>
+
+      <section class="analysis-card page-break-avoid">
+        <div class="section-title-row">
+          <div>
+            <p class="section-kicker">Síntese</p>
+            <h3>Análise objetiva</h3>
+          </div>
+        </div>
+        <div id="analysisText" class="analysis-text">
+          <p>Aguardando leitura do DXF.</p>
+        </div>
+      </section>
+
+      <section class="map-card page-break-avoid">
+        <div class="section-title-row">
+          <div>
+            <p class="section-kicker">Geometria</p>
+            <h3>Mapa de execução</h3>
+            <p class="section-note">Planejado em cinza, executado em vermelho e emboques marcados.</p>
+          </div>
+        </div>
+        <div id="planMap" class="plan-map"></div>
+      </section>
+
+      <section class="charts-grid">
+        <article class="chart-card page-break-avoid">
+          <div class="section-title-row">
+            <div>
+              <p class="section-kicker">Gráfico</p>
+              <h3 id="angleChartTitle">Ângulo frontal</h3>
+            </div>
+          </div>
+          <canvas id="angleChart"></canvas>
+        </article>
+
+        <article class="chart-card page-break-avoid">
+          <div class="section-title-row">
+            <div>
+              <p class="section-kicker">Gráfico</p>
+              <h3 id="directionChartTitle">Direção dos furos</h3>
+            </div>
+          </div>
+          <canvas id="directionChart"></canvas>
+        </article>
+
+        <article class="chart-card chart-card--wide page-break-avoid">
+          <div class="section-title-row">
+            <div>
+              <p class="section-kicker">Gráfico</p>
+              <h3 id="deviationChartTitle">Distribuição de desvios</h3>
+            </div>
+          </div>
+          <canvas id="deviationChart"></canvas>
+        </article>
+      </section>
+
+      <section class="data-table-card page-break-avoid">
+        <div class="section-title-row">
+          <div>
+            <p class="section-kicker">Base calculada</p>
+            <h3>Tabela de conferência</h3>
+            <p class="section-note">Base completa dos furos processados a partir do DXF.</p>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Ângulo</th>
+                <th>Azimute</th>
+                <th>Δ Profundidade</th>
+                <th>Profundidade projetada</th>
+                <th>Profundidade executada</th>
+              </tr>
+            </thead>
+            <tbody id="dataTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="./app.js?v=14"></script>
-  <script src="./excel-export-v2.js?v=4"></script>
+  <script src="app.js"></script>
 </body>
 </html>

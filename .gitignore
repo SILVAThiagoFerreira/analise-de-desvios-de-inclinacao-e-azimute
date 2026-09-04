@@ -1,5 +1,6 @@
 .codegraph/
-VISUAL/
+.playwright-cli/
+output/
+tmp/
 Thumbs.db
 .DS_Store
-parametros.jpeg
