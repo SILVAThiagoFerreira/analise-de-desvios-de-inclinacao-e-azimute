@@ -467,49 +467,47 @@ function setMetricCardTone(card, pct) {
 }
 
 function complianceAssessment(pct, meta) {
-  if (!Number.isFinite(pct)) return "não pôde ser consolidada";
-  if (pct >= meta) return "permanece em linha com a meta de referência";
-  return "apresenta desempenho abaixo da meta de referência";
+  if (!Number.isFinite(pct)) return "não consolidada";
+  if (pct >= meta) return "atinge a meta";
+  return "abaixo da meta";
 }
 
 function depthSentence(avgDelta) {
   if (!Number.isFinite(avgDelta)) {
-    return "A tendência média de profundidade não pôde ser consolidada com base no conjunto disponível.";
+    return "Média de Δ profundidade: não consolidada.";
   }
   if (avgDelta > 0.03) {
-    return "A profundidade média executada permanece acima da profundidade de projeto no conjunto analisado.";
+    return `Média de Δ profundidade: ${formatSignedNumber(avgDelta, 2, " m")}; executado acima do projeto.`;
   }
   if (avgDelta < -0.03) {
-    return "A profundidade média executada permanece abaixo da profundidade de projeto no conjunto analisado.";
+    return `Média de Δ profundidade: ${formatSignedNumber(avgDelta, 2, " m")}; executado abaixo do projeto.`;
   }
-  return "A profundidade média executada permanece próxima da profundidade de projeto no conjunto analisado.";
+  return `Média de Δ profundidade: ${formatSignedNumber(avgDelta, 2, " m")}; próxima do projeto.`;
 }
 
 function buildAnalysisParagraphs(metrics) {
   const paragraphs = [];
   paragraphs.push(
-    `A aderência de ângulo registra <strong>${formatPercent(metrics.anglePct)}</strong> e ${complianceAssessment(metrics.anglePct, state.limits.meta)}, com ${metrics.angleOk} de ${metrics.total} furos enquadrados no intervalo configurado de ${formatNumber(state.limits.angleMin, 2)}° a ${formatNumber(state.limits.angleMax, 2)}°.`
+    `<span class="analysis-label">Ângulo</span><strong>${formatPercent(metrics.anglePct)}</strong><span>${metrics.angleOk}/${metrics.total} dentro de ${formatNumber(state.limits.angleMin, 2)}° a ${formatNumber(state.limits.angleMax, 2)}°; ${complianceAssessment(metrics.anglePct, state.limits.meta)}.</span>`
   );
 
   if (metrics.azComparable > 0) {
     paragraphs.push(
-      `A aderência de azimute registra <strong>${formatPercent(metrics.azPct)}</strong> e ${complianceAssessment(metrics.azPct, state.limits.meta)}, considerando ${metrics.azComparable} furo(s) com base comparável em planta dentro do limite de ${formatNumber(state.limits.azimuth, 2)}°.`
+      `<span class="analysis-label">Azimute</span><strong>${formatPercent(metrics.azPct)}</strong><span>${metrics.azOk}/${metrics.azComparable} dentro de ±${formatNumber(state.limits.azimuth, 2)}°; ${complianceAssessment(metrics.azPct, state.limits.meta)}.</span>`
     );
   } else {
-    paragraphs.push("Não houve base geométrica suficiente para consolidar a aderência de azimute no conjunto analisado.");
+    paragraphs.push(`<span class="analysis-label">Azimute</span><span>Sem base geométrica suficiente para comparação direcional.</span>`);
   }
 
   paragraphs.push(
-    `A aderência Z registra <strong>${formatPercent(metrics.depthPct)}</strong> e ${complianceAssessment(metrics.depthPct, state.limits.meta)}, com verificação frente ao limite de profundidade de ${formatNumber(state.limits.depth, 2)} m.`
+    `<span class="analysis-label">Profundidade</span><strong>${formatPercent(metrics.depthPct)}</strong><span>${metrics.depthOk}/${metrics.total} dentro de ±${formatNumber(state.limits.depth, 2)} m; ${complianceAssessment(metrics.depthPct, state.limits.meta)}.</span>`
   );
 
-  paragraphs.push(depthSentence(metrics.avgDepthDelta));
-
   if (metrics.azComparable < metrics.total) {
-    paragraphs.push(
-      `${metrics.total - metrics.azComparable} furo(s) não apresentaram deslocamento teórico em planta suficiente para comparação direcional.`
-    );
+    paragraphs.push(`<span class="analysis-label">Observação</span><span>${metrics.total - metrics.azComparable} furo(s) sem deslocamento teórico suficiente para comparação direcional.</span>`);
   }
+
+  paragraphs.push(`<span class="analysis-label">Média</span><span>${depthSentence(metrics.avgDepthDelta).replace(/^Média de Δ profundidade:\s*/, "")}</span>`);
 
   return paragraphs;
 }
@@ -518,17 +516,17 @@ function renderSummary(rows) {
   const metrics = calculateMetrics(rows);
   const blast = state.blastName || "Fogo";
   state.renderedAt = new Date();
-  const metaLabel = `Meta = ${formatNumber(state.limits.meta, 0)}%`;
+  const metaLabel = `Meta: ${formatNumber(state.limits.meta, 0)}%`;
 
   els.headerBlastName.textContent = blast;
-  els.reportFireTag.textContent = `Fogo ${blast}`;
-  els.reportTitle.textContent = `Análise de Desvios de Inclinação e Azimute - ${blast}`;
+  els.reportFireTag.textContent = blast;
+  els.reportTitle.textContent = `Inclinação, azimute e profundidade - ${blast}`;
   els.reportSubtitle.textContent = currentFileName;
-  els.reportSource.textContent = "Leitura direta do DXF com comparação entre planejado, executado e limites de aderência.";
+  els.reportSource.textContent = "Planejado x executado; limites configurados.";
   els.reportDate.textContent = formatDateTime(state.renderedAt);
 
   els.metricHoles.textContent = metrics.total.toLocaleString("pt-BR");
-  els.metricComparable.textContent = `${metrics.azComparable.toLocaleString("pt-BR")} com direção comparável em planta`;
+  els.metricComparable.textContent = `${metrics.azComparable.toLocaleString("pt-BR")} comparáveis em planta`;
   els.metricAngle.textContent = formatPercent(metrics.anglePct);
   els.metricAzimuth.textContent = formatPercent(metrics.azPct);
   els.metricDepth.textContent = formatPercent(metrics.depthPct);
@@ -1129,6 +1127,13 @@ function appendCanvasAsSection(pdf, layout, canvas, options = {}) {
 
   let renderedOffset = 0;
   while (renderedOffset < canvas.height) {
+    // html2canvas can leave a tiny rounding remainder after the last
+    // table slice. Do not turn that empty remainder into a blank PDF page.
+    const remainingCanvasHeight = canvas.height - renderedOffset;
+    if (remainingCanvasHeight <= 8) {
+      break;
+    }
+
     const remainingHeightMm = layout.pageHeight - layout.margin - layout.currentY;
     const availablePixelHeight = Math.max(
       1,
@@ -1138,7 +1143,7 @@ function appendCanvasAsSection(pdf, layout, canvas, options = {}) {
     addCanvasPageSlice(pdf, layout, canvas, renderedOffset, sliceHeight, mmPerPixel);
     renderedOffset += sliceHeight;
 
-    if (renderedOffset < canvas.height) {
+    if (renderedOffset < canvas.height && canvas.height - renderedOffset > 8) {
       pdf.addPage();
       layout.pageIndex += 1;
       layout.currentY = layout.margin;

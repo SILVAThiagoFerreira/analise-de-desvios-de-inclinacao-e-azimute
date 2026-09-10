@@ -947,3 +947,225 @@ tbody tr:nth-child(even) {
     font-size: 10px;
   }
 }
+
+/* Report refinement: compact technical reading without changing chart rendering. */
+#report.report-sheet {
+  padding: 24px 28px;
+}
+
+#report .report-header {
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--text-strong);
+}
+
+#report .report-header__topline {
+  margin-bottom: 12px;
+}
+
+#report .report-header__body {
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+#report .report-kicker {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+#report .report-header h2 {
+  margin-bottom: 8px;
+  font-size: 26px;
+  line-height: 1.08;
+}
+
+#report .report-intro,
+#report .report-subtitle,
+#report .report-source {
+  font-size: 12px;
+}
+
+#report .report-fire-tag {
+  border: 0;
+  border-left: 3px solid var(--accent);
+  background: var(--surface-soft);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+#report .report-logo {
+  height: 25px;
+}
+
+#report .report-meta-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+#report .report-meta-item {
+  min-height: 0;
+  padding: 8px 10px;
+  border: 0;
+  border-top: 1px solid var(--border-strong);
+}
+
+#report .report-meta-item--wide {
+  grid-column: auto;
+}
+
+#report .report-meta-item__label {
+  margin-bottom: 4px;
+  font-size: 10px;
+}
+
+#report .report-meta-item__value {
+  font-size: 11px;
+}
+
+#report .summary-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 14px 0 12px;
+}
+
+#report .metric-card {
+  min-height: 92px;
+  padding: 12px;
+  border-top: 3px solid var(--border-strong);
+  border-left: 0;
+}
+
+#report .metric-card--alert {
+  border-top-color: var(--accent);
+}
+
+#report .metric-label {
+  margin-bottom: 8px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+#report .metric-card strong {
+  margin-bottom: 6px;
+  font-size: 30px;
+}
+
+#report .metric-card small {
+  font-size: 10px;
+}
+
+#report .control-card,
+#report .analysis-card,
+#report .data-table-card {
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+#report .section-title-row {
+  margin-bottom: 10px;
+}
+
+#report .section-title-row h3 {
+  font-size: 16px;
+}
+
+#report .section-caption,
+#report .section-note {
+  font-size: 11px;
+}
+
+#report .control-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+#report .control-item {
+  min-height: 0;
+  padding: 12px 14px;
+  border: 0;
+  border-top: 1px solid var(--border-strong);
+}
+
+#report .control-item__title {
+  margin-bottom: 8px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+#report .control-item__value {
+  margin-bottom: 6px;
+  font-size: 20px;
+}
+
+#report .control-item__detail {
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+#report .analysis-text {
+  gap: 0;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+#report .analysis-text p {
+  display: grid;
+  grid-template-columns: 92px 70px minmax(0, 1fr);
+  gap: 8px;
+  align-items: baseline;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+#report .analysis-text p:last-child {
+  border-bottom: 0;
+}
+
+#report .analysis-text p > span:nth-child(2):last-child {
+  grid-column: 2 / -1;
+}
+
+#report .analysis-label {
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+#report .analysis-text strong {
+  font-size: 13px;
+}
+
+@media (max-width: 760px) {
+  #report .report-meta-grid,
+  #report .summary-grid,
+  #report .control-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  #report .report-meta-item--wide {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 520px) {
+  #report .summary-grid,
+  #report .control-grid,
+  #report .report-meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #report .report-meta-item--wide {
+    grid-column: auto;
+  }
+
+  #report .analysis-text p {
+    grid-template-columns: 78px 64px minmax(0, 1fr);
+  }
+}
+
+@media print {
+  #report.report-sheet {
+    padding: 10mm 8mm;
+  }
+}

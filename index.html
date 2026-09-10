@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Análise de Desvios de Inclinação e Azimute</title>
   <meta name="description" content="Análise de desvios de inclinação, azimute e profundidade a partir de DXF." />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=20260910-pdf5" />
   <link rel="icon" href="assets/openblast-favicon-white.svg" type="image/svg+xml" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -102,7 +102,7 @@
     <section id="report" class="report-sheet">
       <header class="report-header page-break-avoid">
         <div class="report-header__topline">
-          <span class="report-kicker">Relatório técnico</span>
+          <span class="report-kicker">Análise de desvios</span>
           <div id="reportLogoBlock" class="report-logo-block">
             <img id="reportLogo" class="report-logo" src="assets/default-report-logo.png" alt="Logo do relatório" />
             <div id="reportLogoWordmark" class="report-logo-wordmark" aria-hidden="true">OPENBLAST</div>
@@ -111,78 +111,78 @@
 
         <div class="report-header__body">
           <div class="report-header__main">
-            <h2 id="reportTitle">Análise de Desvios de Inclinação e Azimute - PP23</h2>
-            <p class="report-intro">Comparação entre planejado, executado e limites de aderência.</p>
+            <h2 id="reportTitle">Inclinação, azimute e profundidade - PP23</h2>
+            <p class="report-intro">Conferência do executado em relação ao planejado.</p>
           </div>
 
           <div class="report-header__side">
-            <div id="reportFireTag" class="report-fire-tag">Fogo PP23</div>
+            <div id="reportFireTag" class="report-fire-tag">PP23</div>
           </div>
         </div>
 
         <div class="report-meta-grid">
           <div class="report-meta-item">
-            <span class="report-meta-item__label">Data de geração</span>
+            <span class="report-meta-item__label">Data</span>
             <strong id="reportDate" class="report-meta-item__value">--</strong>
           </div>
           <div class="report-meta-item">
-            <span class="report-meta-item__label">Arquivo de origem</span>
+            <span class="report-meta-item__label">Origem</span>
             <strong id="reportSubtitle" class="report-meta-item__value">PP23.dxf</strong>
           </div>
           <div class="report-meta-item report-meta-item--wide">
-            <span class="report-meta-item__label">Contexto</span>
-            <strong id="reportSource" class="report-meta-item__value">Fonte: DXF padrão do pacote</strong>
+            <span class="report-meta-item__label">Base de comparação</span>
+            <strong id="reportSource" class="report-meta-item__value">Planejado x executado; limites configurados.</strong>
           </div>
         </div>
       </header>
 
       <section class="summary-grid page-break-avoid">
         <article class="metric-card" id="metricHolesCard">
-          <span class="metric-label">Furos analisados</span>
+          <span class="metric-label">Furos</span>
           <strong id="metricHoles">0</strong>
-          <small id="metricComparable">0 com direção comparável em planta</small>
+          <small id="metricComparable">0 comparáveis em planta</small>
         </article>
         <article class="metric-card" id="metricAngleCard">
-          <span class="metric-label">Aderência de Ângulo</span>
+          <span class="metric-label">Ângulo</span>
           <strong id="metricAngle">0,00%</strong>
-          <small id="metricAngleMeta">Meta = 80%</small>
+          <small id="metricAngleMeta">Meta: 80%</small>
         </article>
         <article class="metric-card" id="metricAzimuthCard">
-          <span class="metric-label">Aderência Azimute</span>
+          <span class="metric-label">Azimute</span>
           <strong id="metricAzimuth">0,00%</strong>
-          <small id="metricAzimuthMeta">Meta = 80%</small>
+          <small id="metricAzimuthMeta">Meta: 80%</small>
         </article>
         <article class="metric-card" id="metricDepthCard">
-          <span class="metric-label">Aderência Z</span>
+          <span class="metric-label">Profundidade</span>
           <strong id="metricDepth">0,00%</strong>
-          <small id="metricDepthMeta">Meta = 80%</small>
+          <small id="metricDepthMeta">Meta: 80%</small>
         </article>
       </section>
 
       <section class="control-card page-break-avoid">
         <div class="section-title-row">
           <div>
-            <p class="section-kicker">Controle</p>
-            <h3>Parâmetros objetivos de controle</h3>
+            <p class="section-kicker">Critérios</p>
+            <h3>Limites adotados</h3>
           </div>
-          <p class="section-caption">Critério mínimo de aderência: <strong id="controlMetaText">80%</strong> dos furos dentro dos limites definidos.</p>
+          <p class="section-caption">Meta: <strong id="controlMetaText">80%</strong> dentro dos limites.</p>
         </div>
 
         <div class="control-grid">
           <article class="control-item">
-            <span class="control-item__title">Ângulo frontal</span>
+            <span class="control-item__title">Ângulo</span>
             <strong id="controlAngleExpected" class="control-item__value">15,00°</strong>
             <small id="controlAngleLimits" class="control-item__detail">Limites: 12,00° a 18,00°</small>
             <small id="controlAngleTolerance" class="control-item__detail">Tolerância: ±3,00°</small>
           </article>
           <article class="control-item">
-            <span class="control-item__title">Azimute / Direção dos furos</span>
+            <span class="control-item__title">Azimute</span>
             <strong id="controlAzimuthExpected" class="control-item__value">0,00°</strong>
             <small id="controlAzimuthLimits" class="control-item__detail">Limites: -5,00° a +5,00°</small>
             <small id="controlAzimuthTolerance" class="control-item__detail">Tolerância: ±5,00°</small>
           </article>
           <article class="control-item">
-            <span class="control-item__title">Profundidade / Z</span>
+            <span class="control-item__title">Profundidade</span>
             <strong id="controlDepthExpected" class="control-item__value">0,00 m</strong>
             <small id="controlDepthLimits" class="control-item__detail">Limites: -0,25 m a +0,25 m</small>
             <small id="controlDepthTolerance" class="control-item__detail">Tolerância: ±0,25 m</small>
@@ -193,8 +193,8 @@
       <section class="analysis-card page-break-avoid">
         <div class="section-title-row">
           <div>
-            <p class="section-kicker">Síntese</p>
-            <h3>Análise objetiva</h3>
+            <p class="section-kicker">Resultado</p>
+            <h3>Leitura do conjunto</h3>
           </div>
         </div>
         <div id="analysisText" class="analysis-text">
@@ -217,7 +217,6 @@
         <article class="chart-card page-break-avoid">
           <div class="section-title-row">
             <div>
-              <p class="section-kicker">Gráfico</p>
               <h3 id="angleChartTitle">Ângulo frontal</h3>
             </div>
           </div>
@@ -227,7 +226,6 @@
         <article class="chart-card page-break-avoid">
           <div class="section-title-row">
             <div>
-              <p class="section-kicker">Gráfico</p>
               <h3 id="directionChartTitle">Direção dos furos</h3>
             </div>
           </div>
@@ -237,7 +235,6 @@
         <article class="chart-card chart-card--wide page-break-avoid">
           <div class="section-title-row">
             <div>
-              <p class="section-kicker">Gráfico</p>
               <h3 id="deviationChartTitle">Distribuição de desvios</h3>
             </div>
           </div>
@@ -248,9 +245,9 @@
       <section class="data-table-card page-break-avoid">
         <div class="section-title-row">
           <div>
-            <p class="section-kicker">Base calculada</p>
+            <p class="section-kicker">Dados</p>
             <h3>Tabela de conferência</h3>
-            <p class="section-note">Base completa dos furos processados a partir do DXF.</p>
+            <p class="section-note">Todos os furos processados a partir do DXF.</p>
           </div>
         </div>
         <div class="table-wrap">
@@ -272,6 +269,6 @@
     </section>
   </main>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=20260910-pdf5"></script>
 </body>
 </html>
