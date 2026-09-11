@@ -1139,11 +1139,24 @@ function appendCanvasAsSection(pdf, layout, canvas, options = {}) {
       1,
       Math.floor(remainingHeightMm / mmPerPixel)
     );
-    const sliceHeight = Math.min(availablePixelHeight, canvas.height - renderedOffset);
+    const maximumSliceHeight = Math.min(availablePixelHeight, canvas.height - renderedOffset);
+    let sliceHeight = maximumSliceHeight;
+    if (options.sliceBoundaries?.length) {
+      const nextBoundaries = options.sliceBoundaries.filter(boundary => boundary > renderedOffset);
+      const fittingBoundary = nextBoundaries
+        .filter(boundary => boundary - renderedOffset <= maximumSliceHeight)
+        .pop();
+      const firstBoundary = nextBoundaries[0];
+      sliceHeight = fittingBoundary
+        ? fittingBoundary - renderedOffset
+        : Math.min(firstBoundary || canvas.height, canvas.height) - renderedOffset;
+    }
     addCanvasPageSlice(pdf, layout, canvas, renderedOffset, sliceHeight, mmPerPixel);
     renderedOffset += sliceHeight;
 
-    if (renderedOffset < canvas.height && canvas.height - renderedOffset > 8) {
+    const reachedLastTableRow = options.sliceBoundaries?.length
+      && renderedOffset >= options.sliceBoundaries[options.sliceBoundaries.length - 1];
+    if (renderedOffset < canvas.height && canvas.height - renderedOffset > 8 && !reachedLastTableRow) {
       pdf.addPage();
       layout.pageIndex += 1;
       layout.currentY = layout.margin;
@@ -1175,10 +1188,17 @@ async function exportReportBySections(report, scale) {
   for (const section of sections) {
     const canvas = await renderElementToCanvas(section, scale);
     const isTable = section.classList.contains("data-table-card");
+    const sectionTop = section.getBoundingClientRect().top;
+    const sliceBoundaries = isTable
+      ? Array.from(section.querySelectorAll("thead tr, tbody tr"), row =>
+          Math.ceil((row.getBoundingClientRect().bottom - sectionTop) * scale)
+        )
+      : undefined;
     appendCanvasAsSection(pdf, layout, canvas, {
       allowSplit: isTable,
       minBlockHeightMm: isTable ? 42 : 28,
-      forceNewPage: isTable
+      forceNewPage: isTable,
+      sliceBoundaries
     });
   }
 
