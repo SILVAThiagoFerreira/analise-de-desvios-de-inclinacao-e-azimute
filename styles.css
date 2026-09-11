@@ -963,8 +963,13 @@ tbody tr:nth-child(even) {
 }
 
 #report .report-header__body {
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
   margin-bottom: 12px;
+}
+
+#report .report-header__side {
+  display: none;
 }
 
 #report .report-kicker {
@@ -1061,11 +1066,11 @@ tbody tr:nth-child(even) {
   margin-bottom: 14px;
 }
 
-#report .section-title-row {
+#report :is(.control-card, .analysis-card, .data-table-card) .section-title-row {
   margin-bottom: 10px;
 }
 
-#report .section-title-row h3 {
+#report :is(.control-card, .analysis-card, .data-table-card) .section-title-row h3 {
   font-size: 16px;
 }
 
@@ -1136,6 +1141,17 @@ tbody tr:nth-child(even) {
   font-size: 13px;
 }
 
+#report .data-table-card th {
+  font-size: 10px;
+  letter-spacing: 0;
+  text-transform: none;
+  word-break: normal;
+}
+
+#report .data-table-card th:first-child {
+  width: 8%;
+}
+
 @media (max-width: 760px) {
   #report .report-meta-grid,
   #report .summary-grid,
@@ -1161,6 +1177,11 @@ tbody tr:nth-child(even) {
 
   #report .analysis-text p {
     grid-template-columns: 78px 64px minmax(0, 1fr);
+  }
+
+  #report .data-table-card th {
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 }
 

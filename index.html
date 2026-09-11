@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Análise de Desvios de Inclinação e Azimute</title>
   <meta name="description" content="Análise de desvios de inclinação, azimute e profundidade a partir de DXF." />
-  <link rel="stylesheet" href="styles.css?v=20260910-pdf5" />
+  <link rel="stylesheet" href="styles.css?v=20260910-pdf8" />
   <link rel="icon" href="assets/openblast-favicon-white.svg" type="image/svg+xml" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -162,7 +162,6 @@
       <section class="control-card page-break-avoid">
         <div class="section-title-row">
           <div>
-            <p class="section-kicker">Critérios</p>
             <h3>Limites adotados</h3>
           </div>
           <p class="section-caption">Meta: <strong id="controlMetaText">80%</strong> dentro dos limites.</p>
@@ -176,13 +175,13 @@
             <small id="controlAngleTolerance" class="control-item__detail">Tolerância: ±3,00°</small>
           </article>
           <article class="control-item">
-            <span class="control-item__title">Azimute</span>
+            <span class="control-item__title">Desvio de azimute</span>
             <strong id="controlAzimuthExpected" class="control-item__value">0,00°</strong>
             <small id="controlAzimuthLimits" class="control-item__detail">Limites: -5,00° a +5,00°</small>
             <small id="controlAzimuthTolerance" class="control-item__detail">Tolerância: ±5,00°</small>
           </article>
           <article class="control-item">
-            <span class="control-item__title">Profundidade</span>
+            <span class="control-item__title">Δ profundidade</span>
             <strong id="controlDepthExpected" class="control-item__value">0,00 m</strong>
             <small id="controlDepthLimits" class="control-item__detail">Limites: -0,25 m a +0,25 m</small>
             <small id="controlDepthTolerance" class="control-item__detail">Tolerância: ±0,25 m</small>
@@ -193,8 +192,7 @@
       <section class="analysis-card page-break-avoid">
         <div class="section-title-row">
           <div>
-            <p class="section-kicker">Resultado</p>
-            <h3>Leitura do conjunto</h3>
+            <h3>Aderência aos limites</h3>
           </div>
         </div>
         <div id="analysisText" class="analysis-text">
@@ -245,7 +243,6 @@
       <section class="data-table-card page-break-avoid">
         <div class="section-title-row">
           <div>
-            <p class="section-kicker">Dados</p>
             <h3>Tabela de conferência</h3>
             <p class="section-note">Todos os furos processados a partir do DXF.</p>
           </div>
@@ -269,6 +266,6 @@
     </section>
   </main>
 
-  <script src="app.js?v=20260910-pdf5"></script>
+  <script src="app.js?v=20260910-pdf8"></script>
 </body>
 </html>

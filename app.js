@@ -507,7 +507,7 @@ function buildAnalysisParagraphs(metrics) {
     paragraphs.push(`<span class="analysis-label">Observação</span><span>${metrics.total - metrics.azComparable} furo(s) sem deslocamento teórico suficiente para comparação direcional.</span>`);
   }
 
-  paragraphs.push(`<span class="analysis-label">Média</span><span>${depthSentence(metrics.avgDepthDelta).replace(/^Média de Δ profundidade:\s*/, "")}</span>`);
+  paragraphs.push(`<span class="analysis-label">Δ médio de profundidade</span><span>${depthSentence(metrics.avgDepthDelta).replace(/^Média de Δ profundidade:\s*/, "")}</span>`);
 
   return paragraphs;
 }
