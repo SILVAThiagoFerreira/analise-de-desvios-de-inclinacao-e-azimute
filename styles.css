@@ -22,12 +22,11 @@
 .site-header__topline { min-height: 58px; }
 .brand-logo { height: 34px; width: auto; max-width: 120px; object-fit: contain; }
 
-.openblast-hubbar { display: grid; width: 100vw; margin-left: calc(50% - 50vw); grid-template-columns: 1fr auto 1fr; align-items: center; min-height: 54px; padding: 8px 32px; color: #fff; background: #263540; border-bottom: 3px solid #ed1c24; }
-.openblast-hubbar__brand { display: inline-flex; align-items: center; gap: 8px; justify-self: start; font-size: 16px; font-weight: 700; }
-.openblast-hubbar__brand img { width: 30px; height: 36px; object-fit: contain; filter: brightness(0) invert(1); }
-.openblast-hubbar__brand strong { color: #ff4b55; }
-.openblast-hubbar__title { justify-self: center; font-size: 16px; font-weight: 700; }
-@media (max-width: 640px) { .openblast-hubbar { grid-template-columns: auto 1fr; padding: 8px 16px; } .openblast-hubbar__brand span { display: none; } .openblast-hubbar__title { justify-self: end; font-size: 13px; } }
+.enaex-band { display: grid; width: 100vw; margin-left: calc(50% - 50vw); grid-template-columns: 1fr auto 1fr; align-items: center; min-height: 50px; padding: 0 35px 0 45px; color: #fff; background: #3a434b; border-bottom: 3px solid #e20613; position: sticky; top: 0; z-index: 10; }
+.enaex-band__logo { width: 90px; height: auto; justify-self: start; }
+.enaex-band__title { justify-self: center; font-size: 20px; font-weight: 700; white-space: nowrap; }
+.enaex-band__unit { justify-self: end; font-size: 11px; font-weight: 400; letter-spacing: 0.14em; text-transform: uppercase; color: #c4c7cb; white-space: nowrap; }
+@media (max-width: 640px) { .enaex-band { grid-template-columns: auto 1fr; padding: 0 16px; } .enaex-band__logo { width: 64px; } .enaex-band__title { justify-self: center; font-size: 14px; overflow: hidden; text-overflow: ellipsis; } .enaex-band__unit { display: none; } }
 
 * {
   box-sizing: border-box;
