@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Análise de Desvios de Inclinação e Azimute</title>
   <meta name="description" content="Análise de desvios de inclinação, azimute e profundidade a partir de DXF." />
-  <link rel="stylesheet" href="styles.css?v=20260910-pdf10" />
+  <link rel="stylesheet" href="styles.css?v=20261018-brand3" />
   <link rel="icon" href="assets/openblast-favicon-white.svg" type="image/svg+xml" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -101,39 +101,17 @@
 
     <section id="report" class="report-sheet">
       <header class="report-header page-break-avoid">
-        <div class="report-header__topline">
-          <span class="report-kicker">Análise de desvios</span>
+        <div class="report-header__top">
+          <div class="report-header__main">
+            <h2 id="reportTitle">Análise de desvios</h2>
+            <p class="report-intro">Conferência do executado em relação ao planejado.</p>
+          </div>
           <div id="reportLogoBlock" class="report-logo-block">
             <img id="reportLogo" class="report-logo" src="assets/default-report-logo.png" alt="Logo do relatório" />
             <div id="reportLogoWordmark" class="report-logo-wordmark" aria-hidden="true">OPENBLAST</div>
           </div>
         </div>
-
-        <div class="report-header__body">
-          <div class="report-header__main">
-            <h2 id="reportTitle">Inclinação, azimute e profundidade - PP23</h2>
-            <p class="report-intro">Conferência do executado em relação ao planejado.</p>
-          </div>
-
-          <div class="report-header__side">
-            <div id="reportFireTag" class="report-fire-tag">PP23</div>
-          </div>
-        </div>
-
-        <div class="report-meta-grid">
-          <div class="report-meta-item">
-            <span class="report-meta-item__label">Data</span>
-            <strong id="reportDate" class="report-meta-item__value">--</strong>
-          </div>
-          <div class="report-meta-item">
-            <span class="report-meta-item__label">Origem</span>
-            <strong id="reportSubtitle" class="report-meta-item__value">PP23.dxf</strong>
-          </div>
-          <div class="report-meta-item report-meta-item--wide">
-            <span class="report-meta-item__label">Base de comparação</span>
-            <strong id="reportSource" class="report-meta-item__value">Planejado x executado; limites configurados.</strong>
-          </div>
-        </div>
+        <p class="report-meta"><span id="reportDate">--</span><span class="report-meta__sep">·</span><span id="reportSubtitle">PP23.dxf</span></p>
       </header>
 
       <section class="summary-grid page-break-avoid">
@@ -203,12 +181,11 @@
       <section class="map-card page-break-avoid">
         <div class="section-title-row">
           <div>
-            <p class="section-kicker">Geometria</p>
             <h3>Mapa de execução</h3>
-            <p class="section-note">Planejado em cinza, executado em vermelho e emboques marcados.</p>
           </div>
         </div>
         <div id="planMap" class="plan-map"></div>
+        <p class="section-note">Planejado em cinza, executado em vermelho e emboques marcados.</p>
       </section>
 
       <section class="charts-grid">
@@ -244,7 +221,6 @@
         <div class="section-title-row">
           <div>
             <h3>Tabela de conferência</h3>
-            <p class="section-note">Todos os furos processados a partir do DXF.</p>
           </div>
         </div>
         <div class="table-wrap">
@@ -266,6 +242,6 @@
     </section>
   </main>
 
-  <script src="app.js?v=20260910-pdf10"></script>
+  <script src="app.js?v=20261018-brand3"></script>
 </body>
 </html>

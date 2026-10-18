@@ -2,15 +2,15 @@ const DEFAULT_DXF_PATH = "data/PP23.dxf";
 const DEFAULT_REPORT_LOGO_PATH = "assets/default-report-logo.png";
 
 const THEME = {
-  accent: "#E20613",
-  accentDark: "#B00410",
-  textStrong: "#38424B",
-  textBody: "#38424B",
-  textMuted: "#6C7680",
-  border: "#E3E6EA",
-  borderStrong: "#D2D6DB",
-  grid: "#ECEFF3",
-  planned: "#2F3640",
+  accent: "#B5121B",
+  accentDark: "#8E0E15",
+  textStrong: "#3D4148",
+  textBody: "#3D4148",
+  textMuted: "#8A8F96",
+  border: "#E3E3E3",
+  borderStrong: "#C4C7CB",
+  grid: "transparent",
+  planned: "#3D4148",
   surface: "#FFFFFF",
   soft: "#F5F6F7"
 };
@@ -63,9 +63,7 @@ const els = {
   exportExcelBtn: document.getElementById("exportExcelBtn"),
   reportTitle: document.getElementById("reportTitle"),
   reportSubtitle: document.getElementById("reportSubtitle"),
-  reportSource: document.getElementById("reportSource"),
   reportDate: document.getElementById("reportDate"),
-  reportFireTag: document.getElementById("reportFireTag"),
   reportLogoBlock: document.getElementById("reportLogoBlock"),
   reportLogo: document.getElementById("reportLogo"),
   reportLogoWordmark: document.getElementById("reportLogoWordmark"),
@@ -507,7 +505,7 @@ function buildAnalysisParagraphs(metrics) {
     paragraphs.push(`<span class="analysis-label">Observação</span><span>${metrics.total - metrics.azComparable} furo(s) sem deslocamento teórico suficiente para comparação direcional.</span>`);
   }
 
-  paragraphs.push(`<span class="analysis-label">Δ médio de profundidade</span><span>${depthSentence(metrics.avgDepthDelta).replace(/^Média de Δ profundidade:\s*/, "")}</span>`);
+  paragraphs.push(`<span class="analysis-label">Desvio médio de profundidade</span><span>${depthSentence(metrics.avgDepthDelta).replace(/^Média de Δ profundidade:\s*/, "")}</span>`);
 
   return paragraphs;
 }
@@ -519,10 +517,8 @@ function renderSummary(rows) {
   const metaLabel = `Meta: ${formatNumber(state.limits.meta, 0)}%`;
 
   els.headerBlastName.textContent = blast;
-  els.reportFireTag.textContent = blast;
-  els.reportTitle.textContent = `Inclinação, azimute e profundidade - ${blast}`;
+  els.reportTitle.textContent = `Análise de desvios · ${blast}`;
   els.reportSubtitle.textContent = currentFileName;
-  els.reportSource.textContent = "Planejado x executado; limites configurados.";
   els.reportDate.textContent = formatDateTime(state.renderedAt);
 
   els.metricHoles.textContent = metrics.total.toLocaleString("pt-BR");
@@ -665,7 +661,6 @@ function renderPlanMap(rows) {
       <g>${realLines}</g>
       <g>${collars}</g>
       <g class="map-legend" transform="translate(24, 24)">
-        <rect width="300" height="46" fill="rgba(255,255,255,0.96)" stroke="${THEME.border}" />
         <line x1="16" y1="16" x2="52" y2="16" class="planned-line" />
         <text x="60" y="20">Planejado</text>
         <line x1="132" y1="16" x2="168" y2="16" class="real-line" />
@@ -682,33 +677,21 @@ function buildChartScales() {
     x: {
       ticks: {
         color: THEME.textMuted,
+        font: { size: 10 },
         maxRotation: 0,
-        padding: 10
+        padding: 6
       },
-      grid: {
-        color: THEME.grid,
-        lineWidth: 1.15,
-        drawTicks: true
-      },
-      border: {
-        color: THEME.borderStrong,
-        width: 1.15
-      }
+      grid: { display: false },
+      border: { display: true, color: THEME.borderStrong, width: 0.8 }
     },
     y: {
       ticks: {
         color: THEME.textMuted,
-        padding: 8
+        font: { size: 10 },
+        padding: 6
       },
-      grid: {
-        color: THEME.grid,
-        lineWidth: 1.15,
-        drawTicks: true
-      },
-      border: {
-        color: THEME.borderStrong,
-        width: 1.15
-      }
+      grid: { display: false },
+      border: { display: false }
     }
   };
 }
@@ -781,16 +764,16 @@ function renderCharts(rows) {
         },
         toleranceLines: {
           yLines: [state.limits.angleMin, state.limits.angleMax],
-          color: THEME.planned,
-          lineWidth: 1.85,
-          dash: []
+          color: THEME.textMuted,
+          lineWidth: 0.8,
+          dash: [4, 3]
         }
       },
       scales: {
         ...buildChartScales(),
         x: {
           ...buildChartScales().x,
-          title: { display: true, text: "ID Furo", color: THEME.textBody, font: { weight: "600" } },
+          title: { display: true, text: "ID Furo", color: THEME.textBody, font: { size: 10, weight: "400" } },
           min: 0,
           max: angleXAxisMax,
           ticks: {
@@ -800,7 +783,7 @@ function renderCharts(rows) {
         },
         y: {
           ...buildChartScales().y,
-          title: { display: true, text: "Ângulo [°]", color: THEME.textBody, font: { weight: "600" } },
+          title: { display: true, text: "Ângulo [°]", color: THEME.textBody, font: { size: 10, weight: "400" } },
           min: CHART_LIMITS.angle.min,
           max: CHART_LIMITS.angle.max,
           ticks: {
@@ -844,16 +827,16 @@ function renderCharts(rows) {
         toleranceLines: {
           xLines: [-state.limits.azimuth, state.limits.azimuth],
           yLines: [-state.limits.depth, state.limits.depth],
-          color: THEME.planned,
-          lineWidth: 1.85,
-          dash: []
+          color: THEME.textMuted,
+          lineWidth: 0.8,
+          dash: [4, 3]
         }
       },
       scales: {
         ...buildChartScales(),
         x: {
           ...buildChartScales().x,
-          title: { display: true, text: "Δ Azimute [°]", color: THEME.textBody, font: { weight: "600" } },
+          title: { display: true, text: "Δ Azimute [°]", color: THEME.textBody, font: { size: 10, weight: "400" } },
           min: CHART_LIMITS.direction.xMin,
           max: CHART_LIMITS.direction.xMax,
           ticks: {
@@ -863,7 +846,7 @@ function renderCharts(rows) {
         },
         y: {
           ...buildChartScales().y,
-          title: { display: true, text: "Δ Profundidade [m]", color: THEME.textBody, font: { weight: "600" } },
+          title: { display: true, text: "Δ Profundidade [m]", color: THEME.textBody, font: { size: 10, weight: "400" } },
           reverse: true,
           min: CHART_LIMITS.direction.yMin,
           max: CHART_LIMITS.direction.yMax,
@@ -885,8 +868,8 @@ function renderCharts(rows) {
           label: "Azimute | % do limite",
           data: normalizedAzimuth,
           borderColor: THEME.accent,
-          backgroundColor: "rgba(227, 6, 19, 0.12)",
-          borderWidth: 1.8,
+          backgroundColor: "rgba(181, 18, 27, 0.12)",
+          borderWidth: 1.4,
           pointRadius: 2.5,
           pointHoverRadius: 4,
           tension: 0.16,
@@ -896,8 +879,8 @@ function renderCharts(rows) {
           label: "Profundidade | % do limite",
           data: normalizedDepth,
           borderColor: THEME.planned,
-          backgroundColor: "rgba(47, 54, 64, 0.10)",
-          borderWidth: 1.8,
+          backgroundColor: "rgba(61, 65, 72, 0.10)",
+          borderWidth: 1.4,
           pointRadius: 2.5,
           pointHoverRadius: 4,
           tension: 0.16,
@@ -912,8 +895,9 @@ function renderCharts(rows) {
       plugins: {
         legend: {
           display: true,
-          position: "top",
-          align: "start"
+          position: "bottom",
+          align: "center",
+          labels: { boxWidth: 10, boxHeight: 2, font: { size: 10 }, color: THEME.textBody }
         },
         tooltip: {
           backgroundColor: THEME.surface,
@@ -924,18 +908,20 @@ function renderCharts(rows) {
         },
         toleranceLines: {
           yLines: [100],
-          color: THEME.textMuted
+          color: THEME.textMuted,
+          lineWidth: 0.8,
+          dash: [4, 3]
         }
       },
       scales: {
         ...buildChartScales(),
         x: {
           ...buildChartScales().x,
-          title: { display: true, text: "ID do furo", color: THEME.textBody, font: { weight: "600" } }
+          title: { display: true, text: "ID do furo", color: THEME.textBody, font: { size: 10, weight: "400" } }
         },
         y: {
           ...buildChartScales().y,
-          title: { display: true, text: "% do limite configurado", color: THEME.textBody, font: { weight: "600" } },
+          title: { display: true, text: "% do limite configurado", color: THEME.textBody, font: { size: 10, weight: "400" } },
           min: 0,
           max: normalizedLimit
         }
@@ -1037,16 +1023,20 @@ async function renderElementToCanvas(element, scale) {
   });
 }
 
+const REPORT_FOOTER_RESERVE_MM = 9;
+
 function createPdfLayout(pdf, margin = 10, sectionGap = 4) {
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
+  const bottomY = pageHeight - margin - REPORT_FOOTER_RESERVE_MM;
   return {
     margin,
     sectionGap,
     pageWidth,
     pageHeight,
+    bottomY,
     printableWidth: pageWidth - margin * 2,
-    printableHeight: pageHeight - margin * 2,
+    printableHeight: bottomY - margin,
     currentY: margin,
     pageIndex: 0
   };
@@ -1058,7 +1048,7 @@ function mmPerPixelForCanvas(layout, canvas) {
 
 function ensurePdfSpace(pdf, layout, requiredHeight, options = {}) {
   const forceNewPage = options.forceNewPage === true;
-  const remainingHeight = layout.pageHeight - layout.margin - layout.currentY;
+  const remainingHeight = layout.bottomY - layout.currentY;
   if (
     forceNewPage ||
     (layout.currentY > layout.margin && requiredHeight > remainingHeight)
@@ -1134,7 +1124,7 @@ function appendCanvasAsSection(pdf, layout, canvas, options = {}) {
       break;
     }
 
-    const remainingHeightMm = layout.pageHeight - layout.margin - layout.currentY;
+    const remainingHeightMm = layout.bottomY - layout.currentY;
     const availablePixelHeight = Math.max(
       1,
       Math.floor(remainingHeightMm / mmPerPixel)
@@ -1166,6 +1156,22 @@ function appendCanvasAsSection(pdf, layout, canvas, options = {}) {
   }
 }
 
+function drawReportFooter(pdf, layout, pageNumber, totalPages) {
+  const y = layout.pageHeight - layout.margin - 3;
+  pdf.setDrawColor(61, 65, 72);
+  pdf.setLineWidth(0.2);
+  pdf.line(layout.margin, y - 4, layout.pageWidth - layout.margin, y - 4);
+  pdf.setFont("helvetica", "normal");
+  pdf.setFontSize(7);
+  pdf.setTextColor(138, 143, 150);
+  pdf.text(
+    `OpenBlast · Análise de desvios · ${(state.blastName || "Fogo").toUpperCase()} · Página ${pageNumber} de ${totalPages}`.toUpperCase(),
+    layout.pageWidth - layout.margin,
+    y,
+    { align: "right" }
+  );
+}
+
 async function exportReportBySections(report, scale) {
   const { jsPDF } = window.jspdf || {};
   const pdf = new jsPDF({
@@ -1181,7 +1187,8 @@ async function exportReportBySections(report, scale) {
     report.querySelector(".summary-grid"),
     report.querySelector(".control-card"),
     report.querySelector(".analysis-card"),
-    ...Array.from(report.querySelectorAll(".charts-grid .chart-card")),
+    report.querySelector(".map-card"),
+    report.querySelector(".charts-grid"),
     report.querySelector(".data-table-card")
   ].filter(Boolean);
 
@@ -1200,6 +1207,12 @@ async function exportReportBySections(report, scale) {
       forceNewPage: isTable,
       sliceBoundaries
     });
+  }
+
+  const totalPages = pdf.getNumberOfPages();
+  for (let page = 1; page <= totalPages; page += 1) {
+    pdf.setPage(page);
+    drawReportFooter(pdf, layout, page, totalPages);
   }
 
   return pdf;
