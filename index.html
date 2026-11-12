@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Análise de Desvios de Inclinação e Azimute</title>
   <meta name="description" content="Análise de desvios de inclinação, azimute e profundidade a partir de DXF." />
-  <link rel="stylesheet" href="styles.css?v=20261018-enaex-band" />
+  <link rel="stylesheet" href="styles.css?v=20261112-intro" />
   <link rel="icon" href="assets/openblast-favicon-white.svg" type="image/svg+xml" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -20,32 +20,19 @@
       <span class="enaex-band__title">Análise de Desvios</span>
       <span class="enaex-band__unit">US Vale Verde</span>
     </header>
-    <header class="site-header no-print">
-      <div class="site-header__topline">
-        <img src="assets/openblast-logo.png" alt="OpenBlast" class="brand-logo" />
-      </div>
+    <section class="intro no-print">
+      <p class="intro__eyebrow">Fogo analisado <strong id="headerBlastName" class="intro__blast">PP23</strong></p>
+      <h1>Análise de Desvios de Inclinação e Azimute</h1>
+      <p class="intro__subtitle">Comparação entre planejado, executado e limites de aderência.</p>
 
-      <div class="site-header__body">
-        <div class="site-header__copy">
-          <h1>Análise de Desvios de Inclinação e Azimute</h1>
-          <p class="site-subtitle">Comparação entre planejado, executado e limites de aderência.</p>
-        </div>
-
-        <div class="site-header__meta">
-          <div class="header-meta-card">
-            <span class="header-meta-card__label">Fogo analisado</span>
-            <strong id="headerBlastName" class="header-meta-card__value">PP23</strong>
-          </div>
-          <div class="action-group">
-            <button id="exportPdfBtn" class="btn btn-primary" type="button">Exportar PDF</button>
-            <button id="exportExcelBtn" class="btn btn-secondary" type="button">Exportar Excel</button>
-            <button id="loadDxfBtn" class="btn btn-secondary" type="button">Carregar DXF</button>
-            <button id="loadLogoBtn" class="btn btn-secondary" type="button">Inserir logo</button>
-            <button id="reloadDefaultBtn" class="btn btn-tertiary" type="button">Recarregar padrão</button>
-          </div>
-        </div>
+      <div class="intro__actions">
+        <button id="exportPdfBtn" class="btn btn-primary" type="button">Exportar PDF</button>
+        <button id="exportExcelBtn" class="btn btn-secondary" type="button">Exportar Excel</button>
+        <button id="loadDxfBtn" class="btn btn-secondary" type="button">Carregar DXF</button>
+        <button id="loadLogoBtn" class="btn btn-secondary" type="button">Inserir logo</button>
+        <button id="reloadDefaultBtn" class="btn btn-tertiary" type="button">Recarregar padrão</button>
       </div>
-    </header>
+    </section>
 
     <section class="parameter-panel no-print">
       <div class="parameter-panel__header">
