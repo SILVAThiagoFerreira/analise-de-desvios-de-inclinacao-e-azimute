@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Análise de Desvios de Inclinação e Azimute</title>
   <meta name="description" content="Análise de desvios de inclinação, azimute e profundidade a partir de DXF." />
-  <link rel="stylesheet" href="styles.css?v=20261112-intro" />
+  <link rel="stylesheet" href="styles.css?v=20261112-band" />
   <link rel="icon" href="assets/openblast-favicon-white.svg" type="image/svg+xml" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -14,12 +14,12 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
+  <header class="enaex-band no-print">
+    <img src="assets/enaex-brasil-white.png" alt="Enaex Brasil" class="enaex-band__logo" />
+    <span class="enaex-band__title">Análise de Desvios</span>
+    <span class="enaex-band__unit">US Vale Verde</span>
+  </header>
   <main class="app-shell">
-    <header class="enaex-band no-print">
-      <img src="assets/enaex-brasil-white.png" alt="Enaex Brasil" class="enaex-band__logo" />
-      <span class="enaex-band__title">Análise de Desvios</span>
-      <span class="enaex-band__unit">US Vale Verde</span>
-    </header>
     <section class="intro no-print">
       <p class="intro__eyebrow">Fogo analisado <strong id="headerBlastName" class="intro__blast">PP23</strong></p>
       <h1>Análise de Desvios de Inclinação e Azimute</h1>
